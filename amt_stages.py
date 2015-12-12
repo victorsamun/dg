@@ -38,7 +38,7 @@ class WakeupAMTHosts(AMTStage):
             status = self.call_amttool(host.amt_host, 'powerstate')
             if status != 0:
                 self.call_amttool(host.amt_host, 'powerup')
-        except:
+        except Exception:
             host.fail(self, 'call to amttool failed')
 
 
@@ -48,5 +48,5 @@ class ResetAMTHosts(AMTStage):
     def run_single(self, host):
         try:
             self.call_amttool(host.amt_host, 'reset')
-        except:
+        except Exception:
             host.fail(self, 'call to amttool failed')
