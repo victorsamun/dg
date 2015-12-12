@@ -1,0 +1,180 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use SOAP::Lite;
+
+
+my @ps = ("S0", "S1", "S2", "S3", "S4", "S5 (soft-off)", "S4/S5", "Off");
+
+my %rcc = (
+	"reset"      => "16",
+	"powerup"    => "17",
+	"powerdown"  => "18",
+	"powercycle" => "19",
+);
+
+my %rccs = (
+	"nop"        => "0",
+	"pxe"	     => "1",
+	"hd"         => "2",
+	"hdsafe"     => "3",
+	"diag"       => "4",
+	"cd"         => "5",
+);
+
+my %rccs_oem = (
+	"bios"       => 0xc1,
+);
+
+# incomplete list
+my %pt_status = (
+	0x0  =>  "success",
+	0x1  =>  "internal error",
+	0x3  =>  "invalid pt_mode",
+	0xc  =>  "invalid name",
+	0xf  =>  "invalid byte_count",
+	0x10  =>  "not permitted",
+	0x17  =>  "max limit_reached",
+	0x18  =>  "invalid auth_type",
+	0x1a  =>  "invalid dhcp_mode",
+	0x1b  =>  "invalid ip_address",
+	0x1c  =>  "invalid domain_name",
+	0x20  =>  "invalid provisioning_state",
+	0x22  =>  "invalid time",
+	0x23  =>  "invalid index",
+	0x24  =>  "invalid parameter",
+	0x25  =>  "invalid netmask",
+	0x26  =>  "flash write_limit_exceeded",
+	0x800  =>  "network if_error_base",
+	0x801  =>  "unsupported oem_number",
+	0x802  =>  "unsupported boot_option",
+	0x803  =>  "invalid command",
+	0x804  =>  "invalid special_command",
+	0x805  =>  "invalid handle",
+	0x806  =>  "invalid password",
+	0x807  =>  "invalid realm",
+	0x808  =>  "storage acl_entry_in_use",
+	0x809  =>  "data missing",
+	0x80a  =>  "duplicate",
+	0x80b  =>  "eventlog frozen",
+	0x80c  =>  "pki missing_keys",
+	0x80d  =>  "pki generating_keys",
+	0x80e  =>  "invalid key",
+	0x80f  =>  "invalid cert",
+	0x810  =>  "cert key_not_match",
+	0x811  =>  "max kerb_domain_reached",
+	0x812  =>  "unsupported",
+	0x813  =>  "invalid priority",
+	0x814  =>  "not found",
+	0x815  =>  "invalid credentials",
+	0x816  =>  "invalid passphrase",
+	0x818  =>  "no association",
+);
+
+
+sub SOAP::Transport::HTTP::Client::get_basic_credentials {
+	return $ENV{'AMT_USER'} => $ENV{'AMT_PASSWORD'}
+}
+
+sub soap_init($$$) {
+    my ($proto, $host, $port) = @_;
+	my $proxybase = "$proto://$host:$port";
+	my $schemabase = "http://schemas.intel.com/platform/client";
+
+	my $nas = SOAP::Lite->new(
+		proxy      => "$proxybase/NetworkAdministrationService",
+		default_ns => "$schemabase/NetworkAdministration/2004/01");
+	my $sas = SOAP::Lite->new(
+		proxy      => "$proxybase/SecurityAdministrationService",
+		default_ns => "$schemabase/SecurityAdministration/2004/01");
+	my $rcs = SOAP::Lite->new(
+		proxy      => "$proxybase/RemoteControlService",
+		default_ns => "$schemabase/RemoteControl/2004/01");
+
+	$nas->autotype(0);
+	$sas->autotype(0);
+	$rcs->autotype(0);
+
+	my $version = $sas->GetCoreVersion()->paramsout;
+
+    ($nas, $sas, $rcs, $version);
+}
+
+
+sub print_result($) {
+	my $ret = shift;
+	my $rc = $ret->result;
+	my $msg = '';
+
+	if (!defined($rc)) {
+		$msg = "soap failure";
+	} elsif (!defined($pt_status{$rc})) {
+		$msg = sprintf("unknown pt_status code: 0x%x", $rc);
+	} elsif ($rc != 0) {
+		$msg = "$pt_status{$rc}\n";
+	}
+    print $msg;
+}
+
+sub do_soap {
+	my $soap = shift;
+	my $name = shift;
+	my @args = @_;
+	my $method;
+
+	$method = SOAP::Data->name($name)
+			    ->attr( { xmlns => $soap->ns } );
+
+	my $ret = $soap->call($method, @args);
+	print_result($ret);
+	return $ret;
+}
+
+sub remote_control($$$) {
+	my ($rcs, $command, $special) = @_;
+
+	my @args;
+    push (@args, SOAP::Data->name('Command' => $rcc{$command}));
+    push (@args, SOAP::Data->name('IanaOemNumber' => 343));
+    if (defined($special) && defined($rccs{$special})) {
+        push (@args, SOAP::Data->name('SpecialCommand' => $rccs{$special}));
+    }
+    if (defined($special) && defined($rccs_oem{$special})) {
+        push (@args, SOAP::Data->name('SpecialCommand' => $rccs_oem{$special}));
+        push (@args, SOAP::Data->name('OEMparameters' => 1));
+    }
+    do_soap($rcs, "RemoteControl", @args);
+}
+
+sub main {
+    my ($host, $command) = (shift, shift);
+    if (!defined($host) or !defined($command)) {
+        print STDERR "usage: $0 <host> <command>\n";
+        exit 2;
+    }
+
+    my $proto = 'http';
+    my $port = "16992";
+
+    my ($nas, $sas, $rcs, $version) = soap_init($proto, $host, $port);
+
+    if ($command eq "powerstate") {
+        my $powerstate = $rcs->GetSystemPowerState()->paramsout;
+        print $powerstate & 0x0f , "\n";
+    } elsif (defined($rcc{$command})) {
+        my $special = shift;
+        my $ret = remote_control($rcs, $command, $special);
+        print_result($ret);
+        if (!defined($ret->result) or $ret->result != 0) {
+            exit 1;
+        } else {
+            exit 0;
+        }
+    } else {
+        print STDERR "unknown command: $command";
+        exit 2;
+    }
+}
+
+main(@ARGV)
