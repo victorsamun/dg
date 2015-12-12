@@ -1,4 +1,5 @@
 import datetime
+import disk_stages
 import method
 import amt_creds
 import amt_stages
@@ -20,4 +21,8 @@ class AMTMethod(method.Method):
                     datetime.timedelta(seconds=10),
                     datetime.timedelta(minutes=10)),
              amtredird_stages.DisableRedirection(amtredird_url),
-             common_stages.ResetBoot(config_url)])
+             common_stages.ResetBoot(config_url),
+             disk_stages.DetermineDisk(),
+             disk_stages.FreeDisk(),
+             disk_stages.PartitionDisk(),
+             disk_stages.ConfigureDisk()])

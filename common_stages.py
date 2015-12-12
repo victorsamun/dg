@@ -6,11 +6,8 @@ import stage
 import subprocess
 import time
 
-class InitHosts(stage.Stage):
+class InitHosts(stage.WithConfig, stage.Stage):
     name = 'get initial host list'
-
-    def __init__(self, config_url):
-        self.config_url = config_url
 
     def run(self, state):
         for sname in config.get_hosts(self.config_url, state.group):
@@ -53,27 +50,23 @@ class WaitForSSHAvailable(stage.Stage):
                     self, 'failed to ensure SSH is available')
 
 
-class ConfigureBoot(stage.SimpleStage):
-    def __init__(self, config_url, default):
-        self.config_url = config_url
-        self.default = default
+class ConfigureBoot(stage.WithConfig, stage.SimpleStage):
+    BOOT_PROP = 'boot'
 
     def run_single(self, host):
-        config.set_props(self.config_url, host.name, [('boot', self.default)])
+        config.set_props(self.config_url, host.name,
+                         [(ConfigureBoot.BOOT_PROP, self.__class__.value)])
 
 
 class SetBootIntoCOWMemory(ConfigureBoot):
     name = 'enable boot to COW memory image'
-
-    def __init__(self, config_url):
-        super(SetBootIntoCOWMemory, self).__init__(config_url, 'cow-m')
+    value = 'cow-m'
 
     def rollback_single(self, host):
-        config.set_props(self.config_url, host.name, [('boot', '')])
+        config.set_props(self.config_url, host.name,
+                         [(ConfigureBoot.BOOT_PROP, ResetBoot.value)])
 
 
 class ResetBoot(ConfigureBoot):
     name = "reset boot into it's default state"
-
-    def __init__(self, config_url):
-        super(ResetBoot, self).__init__(config_url, '')
+    value = ''

@@ -30,3 +30,8 @@ class SimpleStage(Stage):
 
     def rollback_single(self, host):
         pass
+
+
+class WithConfig(object):
+    def __init__(self, config_url):
+        self.config_url = config_url

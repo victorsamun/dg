@@ -4,6 +4,7 @@ class Host(object):
         self.name = name
         self.props = props
         self.amt_host = None
+        self.disk = None
         self.state.active_hosts.add(self)
 
     def __str__(self):

@@ -4,11 +4,8 @@ import subprocess
 import os.path
 
 
-class DetermineAMTHosts(stage.SimpleStage):
+class DetermineAMTHosts(stage.WithConfig, stage.SimpleStage):
     name = 'determine AMT hosts'
-
-    def __init__(self, config_url):
-        self.config_url = config_url
 
     def run_single(self, host):
         amt_host = host.props.get('amt')
