@@ -2,7 +2,6 @@ import json
 import urllib
 import urllib2
 
-
 class AmtredirdError(Exception):
 
     def __init__(self, message):

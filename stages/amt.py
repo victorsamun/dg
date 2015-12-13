@@ -20,7 +20,8 @@ class AMTStage(stage.SimpleStage):
         self.provider = creds_provider
 
     def call_amttool(self, host, cmd):
-        AMTTOOL = os.path.join(os.path.dirname(__file__), 'amttool')
+        AMTTOOL = os.path.join(os.path.dirname(__file__), os.path.pardir,
+                               'clients', 'amttool')
         user, passwd = self.provider.get_credentials(host)
         return subprocess.check_output(
             ['/usr/bin/perl', AMTTOOL, host, cmd],
