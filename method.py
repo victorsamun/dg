@@ -1,5 +1,6 @@
 def format_hosts(hosts):
-    return ', '.join(str(host) for host in hosts)
+    return '({} total) {}'.format(
+        len(hosts), ', '.join(sorted(str(host) for host in hosts)))
 
 
 class Method(object):
