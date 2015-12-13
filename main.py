@@ -1,11 +1,11 @@
 import argparse
 import sys
 
-import amt_method
-import state
+from common import state
+from methods import amt
 
 def main(raw_args):
-    methods = {'amt': lambda args: amt_method.AMTMethod(args.p, args.c, args.a)}
+    methods = {'amt': lambda args: amt.AMTMethod(args.p, args.c, args.a)}
 
     parser = argparse.ArgumentParser(description='Deploy some machines')
     parser.add_argument('-g', metavar='GROUP', help='Group to deploy',

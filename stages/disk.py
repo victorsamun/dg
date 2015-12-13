@@ -1,5 +1,6 @@
-import stage
 import subprocess
+
+from common import stage
 
 class DiskBase(stage.SimpleStage):
     def __init__(self, login='root'):

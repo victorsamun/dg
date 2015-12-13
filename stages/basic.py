@@ -1,10 +1,10 @@
-import config
 import datetime
-import host
 import multiprocessing
-import stage
 import subprocess
 import time
+
+from clients import config
+from common import host, stage
 
 class InitHosts(stage.WithConfig, stage.Stage):
     name = 'get initial host list'

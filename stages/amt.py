@@ -1,8 +1,8 @@
-import config
-import stage
 import subprocess
 import os.path
 
+from clients import config
+from common import stage
 
 class DetermineAMTHosts(stage.WithConfig, stage.SimpleStage):
     name = 'determine AMT hosts'

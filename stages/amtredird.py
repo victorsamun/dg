@@ -1,5 +1,5 @@
-import amtredird
-import stage
+from clients import amtredird
+from common import stage
 
 class WithAmtredird(object):
     def __init__(self, amtredird_url):
