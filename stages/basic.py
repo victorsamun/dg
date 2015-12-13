@@ -1,5 +1,4 @@
 import datetime
-import multiprocessing
 import subprocess
 import time
 
@@ -15,26 +14,7 @@ class InitHosts(stage.WithConfig, stage.Stage):
                       config.get_props(self.config_url, sname))
 
 
-def check_ssh((host, login, step_timeout, total_timeout)):
-    start = datetime.datetime.now()
-    while datetime.datetime.now() - start < total_timeout:
-        proc = subprocess.Popen(
-            ['ssh', '-l', login,
-             '-o', 'ConnectTimeout={}'.format(step_timeout.seconds),
-             host.name, 'exit'], stderr=subprocess.PIPE)
-        stdout, stderr = proc.communicate()
-        if len(stderr) > 0:
-            host.state.log.error(stderr.strip())
-
-        rv = proc.returncode
-        if rv == 0:
-            return (host.name, True)
-        else:
-            time.sleep(step_timeout.seconds)
-    return (host.name, False)
-
-
-class WaitForSSHAvailable(stage.Stage):
+class WaitForSSHAvailable(stage.ParallelStage):
     name = 'wait for SSH available on all the hosts'
 
     def __init__(self, step_timeout, total_timeout, login='root'):
@@ -42,17 +22,23 @@ class WaitForSSHAvailable(stage.Stage):
         self.step_timeout = step_timeout
         self.total_timeout = total_timeout
 
-    def run(self, state):
-        name_to_host = dict((host.name, host) for host in state.active_hosts)
-        args = [(host, self.login, self.step_timeout, self.total_timeout)
-                for host in state.active_hosts]
-        results = multiprocessing.Pool(
-            len(state.active_hosts)).map(check_ssh, args)
+    def run_single(self, host):
+        start = datetime.datetime.now()
+        while datetime.datetime.now() - start < self.total_timeout:
+            proc = subprocess.Popen(
+                ['ssh', '-l', self.login,
+                 '-o', 'ConnectTimeout={}'.format(self.step_timeout.seconds),
+                 host.name, 'exit'], stderr=subprocess.PIPE)
+            stdout, stderr = proc.communicate()
+            if len(stderr) > 0:
+                host.state.log.error(stderr.strip())
 
-        for name, result in results:
-            if not result:
-                name_to_host[name].fail(
-                    self, 'failed to ensure SSH is available')
+            rv = proc.returncode
+            if rv == 0:
+                return (True, None)
+            else:
+                time.sleep(self.step_timeout.seconds)
+        return (False, 'failed to ensure SSH is available')
 
 
 class ConfigureBoot(stage.WithConfig, stage.SimpleStage):

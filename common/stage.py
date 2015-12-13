@@ -1,3 +1,5 @@
+import multiprocessing
+
 class Stage(object):
     def __str__(self):
         return self.__class__.name
@@ -30,6 +32,24 @@ class SimpleStage(Stage):
 
     def rollback_single(self, host):
         pass
+
+
+def _run_forked((stage, host)):
+    rv = stage.run_single(host)
+    return (host.name, rv)
+
+
+class ParallelStage(Stage):
+    def run(self, state):
+        name_to_host = dict((host.name, host) for host in state.active_hosts)
+        args = [(self, host) for host in state.active_hosts]
+        for name, (rv, reason) in multiprocessing.Pool(
+                len(state.active_hosts)).map(_run_forked, args):
+            if not rv:
+                name_to_host[name].fail(self, reason)
+
+    def run_single(self, host):
+        return False, 'Not implemented.'
 
 
 class WithConfig(object):
