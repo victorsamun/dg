@@ -26,12 +26,12 @@ class WaitForSSHAvailable(stage.ParallelStage):
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
             proc = subprocess.Popen(
-                ['ssh', '-l', self.login,
+                ['ssh', '-l', self.login, '-o', 'PasswordAuthentication=no',
                  '-o', 'ConnectTimeout={}'.format(self.step_timeout.seconds),
                  host.name, 'exit'], stderr=subprocess.PIPE)
             stdout, stderr = proc.communicate()
             if len(stderr) > 0:
-                host.state.log.error(stderr.strip())
+                host.state.log.error(stderr)
 
             rv = proc.returncode
             if rv == 0:
