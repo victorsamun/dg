@@ -18,7 +18,7 @@ class ColoredFormatter(logging.Formatter):
     def format(self, record):
         return termcolor.colored(
             super(ColoredFormatter, self).format(record),
-            ColoredFormatter.get_color(record), attrs=['bold'])
+            ColoredFormatter.get_color(record))
 
 
 def init(logger):

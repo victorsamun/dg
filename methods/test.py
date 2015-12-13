@@ -10,5 +10,4 @@ class TestMethod(method.Method):
              slurm.WaitForSlurmAvailable(tries=3, pause=1),
              basic.WaitForSSHAvailable(
                 datetime.timedelta(seconds=1),
-                datetime.timedelta(seconds=3)),
-             config.StoreCOWConfig()])
+                datetime.timedelta(seconds=3))])

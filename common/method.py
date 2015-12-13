@@ -25,6 +25,9 @@ class Method(object):
                 state.log.error('all the hosts failed, stopping now')
                 return False
 
-        state.log.warning('finished. Failed hosts are: {}'.format(
-            hosts.format_hosts(state.all_failed_hosts)))
+        if len(state.all_failed_hosts) > 0:
+            state.log.warning('finished. Failed hosts are: {}'.format(
+                hosts.format_hosts(state.all_failed_hosts)))
+        else:
+            state.log.info('finished with failed hosts.')
         return True
