@@ -4,14 +4,14 @@ import time
 
 from clients import config
 from common import host, stage
+from util import proc
 
 class InitHosts(stage.WithConfig, stage.Stage):
     name = 'get initial host list'
 
     def run(self, state):
-        for sname in config.get_hosts(self.config_url, state.group):
-            host.Host(state, config.get_name(self.config_url, sname),
-                      config.get_props(self.config_url, sname))
+        for sname in config.get(self.config_url, state.group)['hosts']:
+            host.Host(state, config.get(self.config_url, sname))
 
 
 class WaitForSSHAvailable(stage.ParallelStage):
@@ -25,15 +25,9 @@ class WaitForSSHAvailable(stage.ParallelStage):
     def run_single(self, host):
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
-            proc = subprocess.Popen(
-                ['ssh', '-l', self.login, '-o', 'PasswordAuthentication=no',
-                 '-o', 'ConnectTimeout={}'.format(self.step_timeout.seconds),
-                 host.name, 'exit'], stderr=subprocess.PIPE)
-            stdout, stderr = proc.communicate()
-            if len(stderr) > 0:
-                host.state.log.error(stderr)
-
-            rv = proc.returncode
+            rv, _ = proc.run_remote_process(
+                host.name, self.login, ['exit'], host.state.log,
+                opts=['ConnectTimeout={}'.format(self.step_timeout.seconds)])
             if rv == 0:
                 return (True, None)
             else:
@@ -45,8 +39,8 @@ class ConfigureBoot(stage.WithConfig, stage.SimpleStage):
     BOOT_PROP = 'boot'
 
     def run_single(self, host):
-        config.set_props(self.config_url, host.name,
-                         [(ConfigureBoot.BOOT_PROP, self.__class__.value)])
+        config.set(self.config_url, host.name,
+                   [(ConfigureBoot.BOOT_PROP, self.__class__.value)])
 
 
 class SetBootIntoCOWMemory(ConfigureBoot):
@@ -54,8 +48,8 @@ class SetBootIntoCOWMemory(ConfigureBoot):
     value = 'cow-m'
 
     def rollback_single(self, host):
-        config.set_props(self.config_url, host.name,
-                         [(ConfigureBoot.BOOT_PROP, ResetBoot.value)])
+        config.set(self.config_url, host.name,
+                   [(ConfigureBoot.BOOT_PROP, ResetBoot.value)])
 
 
 class ResetBoot(ConfigureBoot):

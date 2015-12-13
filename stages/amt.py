@@ -12,7 +12,7 @@ class DetermineAMTHosts(stage.WithConfig, stage.SimpleStage):
         if amt_host is None:
             host.fail(self, 'host props do not have "amt" attribute')
         else:
-            host.amt_host = config.get_name(self.config_url, amt_host)
+            host.amt_host = config.get(self.config_url, amt_host)['name']
 
 
 class AMTStage(stage.SimpleStage):

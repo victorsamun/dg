@@ -1,8 +1,9 @@
 class Host(object):
-    def __init__(self, state, name, props):
+    def __init__(self, state, config):
         self.state = state
-        self.name = name
-        self.props = props
+        self.name = config['name']
+        self.sname = config.get('sname')
+        self.props = config.get('props', {})
         self.amt_host = None
         self.disk = None
         self.state.active_hosts.add(self)

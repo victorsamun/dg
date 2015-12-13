@@ -1,11 +1,11 @@
 import datetime
 
 from common import method
-from stages import amt, amtredird, basic, disk
+from stages import amt, amtredird, basic, disk, ndd, slurm
 from util import amt_creds
 
 class AMTMethod(method.Method):
-    def __init__(self, amtpasswd, config_url, amtredird_url):
+    def __init__(self, amtpasswd, config_url, amtredird_url, ndds):
         creds_provider = amt_creds.AMTCredentialsProvider(amtpasswd)
         super(AMTMethod, self).__init__(
             [basic.InitHosts(config_url),
@@ -23,4 +23,6 @@ class AMTMethod(method.Method):
              disk.DetermineDisk(),
              disk.FreeDisk(),
              disk.PartitionDisk(),
-             disk.ConfigureDisk()])
+             disk.ConfigureDisk(),
+             slurm.WaitForSlurmAvailable(tries=3, pause=10)] +
+            [ndd.RunNDDViaSlurm(*spec.split(':')) for spec in ndds])

@@ -1,7 +1,4 @@
-def format_hosts(hosts):
-    return '({} total) {}'.format(
-        len(hosts), ', '.join(sorted(str(host) for host in hosts)))
-
+from util import hosts
 
 class Method(object):
     def __init__(self, stages):
@@ -13,11 +10,11 @@ class Method(object):
             stage.run(state)
             state.log.info('finished "{}"'.format(stage))
             state.log.info('active hosts after this stage: {}'.format(
-                format_hosts(state.active_hosts)))
+                hosts.format_hosts(state.active_hosts)))
 
             if len(state.failed_hosts) > 0:
                 state.log.warning('failed hosts after "{}": {}'.format(
-                    stage.name, format_hosts(state.failed_hosts)))
+                    stage.name, hosts.format_hosts(state.failed_hosts)))
                 state.log.warning('doing rollback for those')
                 for stage in reversed(self.stages[:index+1]):
                     stage.rollback(state)
@@ -29,5 +26,5 @@ class Method(object):
                 return False
 
         state.log.warning('finished. Failed hosts are: {}'.format(
-            format_hosts(state.all_failed_hosts)))
+            hosts.format_hosts(state.all_failed_hosts)))
         return True
