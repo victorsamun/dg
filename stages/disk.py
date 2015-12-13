@@ -39,9 +39,9 @@ class FreeDisk(DiskBase, stage.ParallelStage):
     def run_single(self, host):
         try:
             self.call_to(host, ['if mountpoint /place; then umount /place; fi'])
-            return (True, None)
+            return self.ok()
         except Exception as e:
-            return (False, e)
+            return self.fail(e)
 
 
 class PartitionDisk(DiskBase, stage.ParallelStage):
@@ -49,12 +49,12 @@ class PartitionDisk(DiskBase, stage.ParallelStage):
 
     def run_single(self, host):
         if not host.disk:
-            return (False, 'no disk found on host')
+            return self.fail('no disk found on host')
         try:
             self.call_to_disk(host, 'create')
-            return (True, None)
+            return self.ok()
         except Exception as e:
-            return (False, e)
+            return self.fail(e)
 
 
 class ConfigureDisk(DiskBase, stage.ParallelStage):

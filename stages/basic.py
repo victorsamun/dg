@@ -29,10 +29,10 @@ class WaitForSSHAvailable(stage.ParallelStage):
                 host.name, self.login, ['exit'], host.state.log,
                 opts=['ConnectTimeout={}'.format(self.step_timeout.seconds)])
             if rv == 0:
-                return (True, None)
+                return self.ok()
             else:
                 time.sleep(self.step_timeout.seconds)
-        return (False, 'failed to ensure SSH is available')
+        return self.fail('failed to ensure SSH is available')
 
 
 class ConfigureBoot(stage.WithConfig, stage.SimpleStage):

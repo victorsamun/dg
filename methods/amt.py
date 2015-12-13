@@ -1,7 +1,7 @@
 import datetime
 
 from common import method
-from stages import amt, amtredird, basic, disk, ndd, slurm
+from stages import amt, amtredird, basic, config, disk, ndd, slurm
 from util import amt_creds
 
 class AMTMethod(method.Method):
@@ -24,5 +24,6 @@ class AMTMethod(method.Method):
              disk.FreeDisk(),
              disk.PartitionDisk(),
              disk.ConfigureDisk(),
+             config.StoreCOWConfig(),
              slurm.WaitForSlurmAvailable(tries=3, pause=10)] +
             [ndd.RunNDDViaSlurm(*spec.split(':')) for spec in ndds])

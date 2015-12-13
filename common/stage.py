@@ -52,6 +52,12 @@ class ParallelStage(Stage):
     def run_single(self, host):
         return False, 'Not implemented.'
 
+    def ok(self):
+        return (True, None)
+
+    def fail(self, reason):
+        return (False, reason)
+
 
 class WithConfig(object):
     def __init__(self, config_url):
