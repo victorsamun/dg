@@ -22,7 +22,7 @@ class SimpleStage(Stage):
             try:
                 self.rollback_single(host)
             except Exception as e:
-                state.log.warning('rollback of {} for {} failed: {}'.format(
+                state.log.exception('rollback of {} for {} failed: {}'.format(
                     self.__class__.name, host.name, e))
 
     def run_single(self, host):

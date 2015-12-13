@@ -18,10 +18,15 @@ class InitHosts(stage.WithConfig, stage.Stage):
 def check_ssh((host, login, step_timeout, total_timeout)):
     start = datetime.datetime.now()
     while datetime.datetime.now() - start < total_timeout:
-        rv = subprocess.call(
+        proc = subprocess.Popen(
             ['ssh', '-l', login,
              '-o', 'ConnectTimeout={}'.format(step_timeout.seconds),
-             host.name, 'exit'])
+             host.name, 'exit'], stderr=subprocess.PIPE)
+        stdout, stderr = proc.communicate()
+        if len(stderr) > 0:
+            host.state.log.error(stderr.strip())
+
+        rv = proc.returncode
         if rv == 0:
             return (host.name, True)
         else:

@@ -1,19 +1,13 @@
-import sys
-
-class Log(object):
-    def info(self, message):
-        print >> sys.stderr, message
-
-    def warning(self, message):
-        print >> sys.stderr, message
-
-    def error(self, message):
-        print >> sys.stderr, message
-
+import log
+import logging
 
 class State(object):
     def __init__(self, group):
         self.group = group
         self.active_hosts = set()
         self.failed_hosts = set()
-        self.log = Log()
+        log.init(self.log)
+
+    @property
+    def log(self):
+        return logging.getLogger(__name__)
