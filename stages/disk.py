@@ -2,7 +2,7 @@ import subprocess
 
 from common import stage
 
-class DiskBase(stage.SimpleStage):
+class DiskBase(object):
     def __init__(self, login='root'):
         self.login = login
 
@@ -14,7 +14,7 @@ class DiskBase(stage.SimpleStage):
         return self.call_to(host, ['/usr/local/bin/disk.py', cmd, host.disk])
 
 
-class DetermineDisk(DiskBase):
+class DetermineDisk(DiskBase, stage.SimpleStage):
     name = 'determine exact device of local disk'
 
     def run_single(self, host):
@@ -33,25 +33,39 @@ class DetermineDisk(DiskBase):
                 host.name, host.disk))
 
 
-class FreeDisk(DiskBase):
+class FreeDisk(DiskBase, stage.ParallelStage):
     name = 'possibly unmount /place to free local disk'
 
     def run_single(self, host):
-        self.call_to(host, ['if mountpoint /place; then umount /place; fi'])
+        try:
+            self.call_to(host, ['if mountpoint /place; then umount /place; fi'])
+            return (True, None)
+        except Exception as e:
+            return (False, e)
 
 
-class PartitionDisk(DiskBase):
+class PartitionDisk(DiskBase, stage.ParallelStage):
     name = 'call "disk.py create" to partition and format local disk'
 
     def run_single(self, host):
-        assert host.disk
-        self.call_to_disk(host, 'create')
+        if not host.disk:
+            return (False, 'no disk found on host')
+        try:
+            self.call_to_disk(host, 'create')
+            return (True, None)
+        except Exception as e:
+            return (False, e)
 
 
-class ConfigureDisk(DiskBase):
+class ConfigureDisk(DiskBase, stage.ParallelStage):
     name = ('call "disk.py configure" to install and configure bootloader ' +
             'on local disk')
 
     def run_single(self, host):
-        assert host.disk
-        self.call_to_disk(host, 'configure')
+        if not host.disk:
+            return (False, 'no disk found on host')
+        try:
+            self.call_to_disk(host, 'configure')
+            return (True, None)
+        except Exception as e:
+            return (False, e)
