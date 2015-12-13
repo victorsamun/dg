@@ -43,10 +43,11 @@ class ParallelStage(Stage):
     def run(self, state):
         name_to_host = dict((host.name, host) for host in state.active_hosts)
         args = [(self, host) for host in state.active_hosts]
-        for name, (rv, reason) in multiprocessing.Pool(
-                len(state.active_hosts)).map(_run_forked, args):
+        pool = multiprocessing.Pool(len(state.active_hosts))
+        for name, (rv, reason) in pool.map(_run_forked, args):
             if not rv:
                 name_to_host[name].fail(self, reason)
+        pool.close()
 
     def run_single(self, host):
         return False, 'Not implemented.'
