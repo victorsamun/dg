@@ -22,7 +22,7 @@ class Method(object):
                 for stage in reversed(self.stages[:index+1]):
                     stage.rollback(state)
                 state.all_failed_hosts.update(state.failed_hosts)
-                state.failed.hosts.clear()
+                state.failed_hosts.clear()
 
             if len(state.active_hosts) == 0:
                 state.log.error('all the hosts failed, stopping now')
