@@ -29,5 +29,5 @@ class Method(object):
             state.log.warning('finished. Failed hosts are: {}'.format(
                 hosts.format_hosts(state.all_failed_hosts)))
         else:
-            state.log.info('finished with failed hosts.')
+            state.log.info('finished.')
         return True
