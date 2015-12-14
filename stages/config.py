@@ -5,6 +5,7 @@ class StoreCOWConfig(stage.ParallelStage):
     name = 'store Puppet SSL stuff into COW config partition'
 
     def __init__(self, login='root'):
+        super(StoreCOWConfig, self).__init__()
         self.login = login
 
     def run_single(self, host):

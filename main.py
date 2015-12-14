@@ -6,8 +6,9 @@ from methods import amt, test
 
 def main(raw_args):
     methods = {
-        'amt' : lambda args: amt.AMTMethod(args.p, args.c, args.a, args.n),
-        'test': lambda args: test.TestMethod(args.c, args.n)
+        'amt' : lambda args: amt.AMTMethod(
+            args.p, args.c, args.a, args.s, args.n),
+        'test': lambda args: test.TestMethod(args.c, args.s)
     }
 
     parser = argparse.ArgumentParser(description='Deploy some machines')
@@ -19,9 +20,11 @@ def main(raw_args):
                         default='https://urgu.org/amtredird')
     parser.add_argument('-c', metavar='CONFIG', help='config API url',
                         default='https://urgu.org/config')
+    parser.add_argument('-s', metavar='ADDR', help='server address',
+                        required=True)
     parser.add_argument(
-        '-n', metavar='SRC:INPUT:OUTPUT', action='append', default=[],
-        help='deploy INPUT from SRC into OUTPUT with ndd')
+        '-n', metavar='INPUT:OUTPUT', action='append', default=[],
+        help='deploy local INPUT into OUTPUT on all the hosts with ndd')
     parser.add_argument(
         '-p', metavar='AMTPASSWD',
         help='passwd file for AMT deployment', default='amtpasswd')

@@ -18,6 +18,7 @@ class WaitForSSHAvailable(stage.ParallelStage):
     name = 'wait for SSH available on all the hosts'
 
     def __init__(self, step_timeout, total_timeout, login='root'):
+        super(WaitForSSHAvailable, self).__init__()
         self.login = login
         self.step_timeout = step_timeout
         self.total_timeout = total_timeout
