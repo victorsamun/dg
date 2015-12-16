@@ -1,8 +1,14 @@
 from util import hosts
 
 class Method(object):
-    def __init__(self, stages):
-        self.stages = stages
+    stages = []
+
+    def __init__(self):
+        self.stages = self.__class__.stages
+
+    def parse(self, args):
+        for stage in self.stages:
+            stage.parse(args)
 
     def run(self, state):
         for index, stage in enumerate(self.stages):

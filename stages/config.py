@@ -1,12 +1,8 @@
-from common import stage
+from common import config, stage
 from util import proc
 
-class StoreCOWConfig(stage.ParallelStage):
+class StoreCOWConfig(config.WithSSHCredentials, stage.ParallelStage):
     name = 'store Puppet SSL stuff into COW config partition'
-
-    def __init__(self, login='root'):
-        super(StoreCOWConfig, self).__init__()
-        self.login = login
 
     def run_single(self, host):
         cmds = [
@@ -19,9 +15,7 @@ class StoreCOWConfig(stage.ParallelStage):
         ]
 
         rvs = [
-            proc.run_remote_process(
-                host.name, self.login, ['/root/cow/conf.sh'] + cmd,
-                host.state.log)
+            self.run_ssh(host, ['/root/cow/conf.sh'] + cmd)
             for cmd in cmds
         ]
 

@@ -13,7 +13,7 @@ def run_process(args, log):
     return (proc.returncode, stdout)
 
 
-def run_remote_process(host, login, args, log, opts=[]):
+def run_remote_process(host, login, args, log, opts):
     cmdline = ['ssh', '-l', login, '-o', 'PasswordAuthentication=no']
     for opt in opts:
         cmdline.extend(['-o', opt])

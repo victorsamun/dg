@@ -1,12 +1,7 @@
 from clients import amtredird
-from common import stage
+from common import config, stage
 
-class WithAmtredird(object):
-    def __init__(self, amtredird_url):
-        self.amtredird_url = amtredird_url
-
-
-class EnsureRedirectionPossible(WithAmtredird, stage.Stage):
+class EnsureRedirectionPossible(config.WithAMTRedirdURL, stage.Stage):
     name = 'ensure amtrerid has the hosts required'
 
     def run(self, state):
@@ -18,7 +13,7 @@ class EnsureRedirectionPossible(WithAmtredird, stage.Stage):
                           'AMT host not configured in amtredird')
 
 
-class ChangeRedirection(WithAmtredird, stage.Stage):
+class ChangeRedirection(config.WithAMTRedirdURL, stage.Stage):
     def run(self, state):
         amt_to_host = {}
         for host in state.active_hosts:

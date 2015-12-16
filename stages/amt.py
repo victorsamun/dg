@@ -1,10 +1,10 @@
 import subprocess
 import os.path
 
-from clients import config
-from common import stage
+from clients import config as cfg
+from common import config, stage
 
-class DetermineAMTHosts(stage.WithConfig, stage.SimpleStage):
+class DetermineAMTHosts(config.WithConfigURL, stage.SimpleStage):
     name = 'determine AMT hosts'
 
     def run_single(self, host):
@@ -12,17 +12,14 @@ class DetermineAMTHosts(stage.WithConfig, stage.SimpleStage):
         if amt_host is None:
             host.fail(self, 'host props do not have "amt" attribute')
         else:
-            host.amt_host = config.get(self.config_url, amt_host)['name']
+            host.amt_host = cfg.get(self.config_url, amt_host)['name']
 
 
-class AMTStage(stage.SimpleStage):
-    def __init__(self, creds_provider):
-        self.provider = creds_provider
-
+class AMTStage(config.WithAMTCredentials, stage.SimpleStage):
     def call_amttool(self, host, cmd):
         AMTTOOL = os.path.join(os.path.dirname(__file__), os.path.pardir,
                                'clients', 'amttool')
-        user, passwd = self.provider.get_credentials(host)
+        user, passwd = self.amt_creds.get_credentials(host)
         return subprocess.check_output(
             ['/usr/bin/perl', AMTTOOL, host, cmd],
             env={'AMT_USER': user, 'AMT_PASSWORD': passwd})

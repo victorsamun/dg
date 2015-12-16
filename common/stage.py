@@ -1,6 +1,9 @@
 import multiprocessing
 
 class Stage(object):
+    def parse(self, args):
+        pass
+
     def __str__(self):
         return self.__class__.name
 
@@ -69,8 +72,3 @@ class ParallelStage(Stage):
 
     def fail(self, reason):
         return (False, reason)
-
-
-class WithConfig(object):
-    def __init__(self, config_url):
-        self.config_url = config_url
