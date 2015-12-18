@@ -28,6 +28,10 @@ class WaitForSlurmAvailable(stage.Stage):
             if i != 0:
                 time.sleep(self.pause)
             rv, failed = self.step(state)
+            if not rv:
+                state.log.warning('call to sinfo failed')
+                failed = state.active_hosts
+                break
             if len(failed) == 0:
                 return
             state.log.warning('still waiting for SLURM to come up on ' +
