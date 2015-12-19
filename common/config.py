@@ -6,6 +6,14 @@ from util import amt_creds, proc
 class Option(object):
     description = 'Deploy some machines'
     requirements = []
+    EMPTY = ()
+
+    @staticmethod
+    def fix_default(kwargs):
+        rv = dict(kwargs)
+        if kwargs.get('default') == Option.EMPTY:
+            rv['default'] = []
+        return rv
 
     @staticmethod
     def add_common_params(parser, methods):
@@ -41,7 +49,7 @@ class Option(object):
     @staticmethod
     def add_all(parser):
         for _, args, kwargs in Option.requirements:
-            parser.add_argument(*args, **kwargs)
+            parser.add_argument(*args, **Option.fix_default(kwargs))
 
     @staticmethod
     def add_required(parser, method):
@@ -53,7 +61,8 @@ class Option(object):
         for args, skwargs in required:
             kwargs = dict(skwargs)
             required = 'default' not in kwargs
-            parser.add_argument(required=required, *args, **kwargs)
+            parser.add_argument(
+                required=required, *args, **Option.fix_default(kwargs))
 
 
 @Option.requires('-a', help='amtredird url', metavar='AMTREDIRD',
@@ -100,7 +109,7 @@ class WithLocalAddress(stage.Stage):
 
 @Option.requires(
     '-n', help='deploy local INPUT into OUTPUT on all the hosts with ndd',
-    metavar='INPUT:OUTPUT', action='append', default=())
+    metavar='INPUT:OUTPUT', action='append', default=Option.EMPTY)
 class WithNDDArgs(stage.Stage):
     def parse(self, args):
         super(WithNDDArgs, self).parse(args)
@@ -109,7 +118,7 @@ class WithNDDArgs(stage.Stage):
 
 @Option.requires(
     '-b', help='ban HOST, excluding it from deployment',
-    metavar='HOST', action='append', default=())
+    metavar='HOST', action='append', default=Option.EMPTY)
 class WithBannedHosts(stage.Stage):
     def parse(self, args):
         super(WithBannedHosts, self).parse(args)
