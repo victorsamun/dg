@@ -14,6 +14,16 @@ class InitHosts(config.WithConfigURL, stage.Stage):
             host.Host(state, cfg.get(self.config_url, sname))
 
 
+class ExcludeBannedHosts(config.WithBannedHosts, stage.Stage):
+    name = 'exclude banned hosts from deployment'
+
+    def run(self, state):
+        for host in list(state.active_hosts):
+            if any(map(lambda name: name in self.banned_hosts,
+                       [host.name, host.sname])):
+                host.fail(self, 'explicitly excluded from deployment')
+
+
 class WaitForSSHAvailable(config.WithSSHCredentials, stage.ParallelStage):
     name = 'wait for SSH available on all the hosts'
 

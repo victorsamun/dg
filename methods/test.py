@@ -8,6 +8,7 @@ class TestMethod(method.Method):
 
     stages = [
         basic.InitHosts(),
+        basic.ExcludeBannedHosts(),
         slurm.WaitForSlurmAvailable(tries=3, pause=1),
         basic.WaitForSSHAvailable(
             step_timeout=datetime.timedelta(seconds=1),

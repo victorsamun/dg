@@ -104,3 +104,12 @@ class WithNDDArgs(stage.Stage):
     def parse(self, args):
         super(WithNDDArgs, self).parse(args)
         self.ndds = [pair.split(':', 1) for pair in args.n]
+
+
+@Option.requires(
+    '-b', help='ban HOST, excluding it from deployment',
+    metavar='HOST', action='append', default=[])
+class WithBannedHosts(stage.Stage):
+    def parse(self, args):
+        super(WithBannedHosts, self).parse(args)
+        self.banned_hosts = args.b

@@ -9,6 +9,7 @@ class AMTMethod(method.Method):
 
     stages = [
         basic.InitHosts(),
+        basic.ExcludeBannedHosts(),
         amt.DetermineAMTHosts(),
         amtredird.EnsureRedirectionPossible(),
         amt.WakeupAMTHosts(),
