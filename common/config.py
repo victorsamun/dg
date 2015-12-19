@@ -45,12 +45,13 @@ class Option(object):
 
     @staticmethod
     def add_required(parser, method):
-        required = dict()
+        required = set()
         for stage in method.stages:
             for cls, args, kwargs in Option.requirements:
                 if issubclass(stage.__class__, cls):
-                    required[args] = kwargs
-        for args, kwargs in required.iteritems():
+                    required.add((args, frozenset(kwargs.items())))
+        for args, skwargs in required:
+            kwargs = dict(skwargs)
             required = 'default' not in kwargs
             parser.add_argument(required=required, *args, **kwargs)
 
@@ -99,7 +100,7 @@ class WithLocalAddress(stage.Stage):
 
 @Option.requires(
     '-n', help='deploy local INPUT into OUTPUT on all the hosts with ndd',
-    metavar='INPUT:OUTPUT', action='append', default=[])
+    metavar='INPUT:OUTPUT', action='append', default=())
 class WithNDDArgs(stage.Stage):
     def parse(self, args):
         super(WithNDDArgs, self).parse(args)
@@ -108,7 +109,7 @@ class WithNDDArgs(stage.Stage):
 
 @Option.requires(
     '-b', help='ban HOST, excluding it from deployment',
-    metavar='HOST', action='append', default=[])
+    metavar='HOST', action='append', default=())
 class WithBannedHosts(stage.Stage):
     def parse(self, args):
         super(WithBannedHosts, self).parse(args)
