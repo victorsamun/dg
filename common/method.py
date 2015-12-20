@@ -32,8 +32,11 @@ class Method(object):
                 return False
 
         if len(state.all_failed_hosts) > 0:
-            state.log.warning('finished. Failed hosts are: {}'.format(
-                hosts.format_hosts(state.all_failed_hosts)))
+            state.log.warning('finished. Failed hosts are: ')
+            for host in state.all_failed_hosts:
+                stage, reason = host.failure
+                state.log.warning('{}, stage: {}, reason: {}'.format(
+                                  host.name, stage, reason))
         else:
             state.log.info('finished.')
         return True
