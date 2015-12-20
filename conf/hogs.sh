@@ -1,6 +1,7 @@
 GROUP=hogs
 METHOD=amt
 LOCAL_ADDRESS=172.16.12.101
+AMTPASSWD=/root/dg/amtpasswd
 
 part() {
     echo "/dev/disk/by-partlabel/$1"

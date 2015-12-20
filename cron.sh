@@ -54,6 +54,7 @@ cmdline=("$(choose_locker "${LOCK[@]}")" "${LOCK[@]}"
          python "$BASE/main.py" -g "$GROUP" -m "$METHOD")
 
 if ! [[ -z "$LOCAL_ADDRESS" ]]; then cmdline+=("-l" "$LOCAL_ADDRESS"); fi
+if ! [[ -z "$AMTPASSWD" ]]; then cmdline+=("-p" "$AMTPASSWD"); fi
 for image in "${NDD[@]}"; do cmdline+=("-n" "$image"); done
 for host in "${BAN[@]}"; do cmdline+=("-b" "$host"); done
 
