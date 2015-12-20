@@ -1,0 +1,5 @@
+MAILTO=deployment@urgu.org
+
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+1 0 * * * root /root/dg/cron.sh /root/dg/conf/test.sh
