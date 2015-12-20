@@ -1,8 +1,9 @@
 import datetime
 
 from common import method
-from stages import amt, amtredird, basic, config, disk, ndd, network, slurm
-from util import amt_creds
+from stages import (
+    amt, amtredird, basic, boot, config, disk, ndd, network, slurm, ssh
+)
 
 class AMTMethod(method.Method):
     name = 'amt'
@@ -14,19 +15,24 @@ class AMTMethod(method.Method):
         amtredird.EnsureRedirectionPossible(),
         amt.WakeupAMTHosts(),
         amtredird.EnableRedirection(),
-        basic.SetBootIntoCOWMemory(),
+        boot.SetBootIntoCOWMemory(),
         amt.ResetAMTHosts(),
-        basic.WaitForSSHAvailable(
-            datetime.timedelta(seconds=10),
-            datetime.timedelta(minutes=10)),
+        ssh.WaitUntilBootedIntoCOWMemory(*ssh.Timeouts.NORMAL),
         amtredird.DisableRedirection(),
-        basic.ResetBoot(),
+        boot.ResetBoot(),
         network.EnsureNetworkSpeed(),
         disk.DetermineDisk(),
         disk.FreeDisk(),
         disk.PartitionDisk(),
         disk.ConfigureDisk(),
         config.StoreCOWConfig(),
-        slurm.WaitForSlurmAvailable(tries=3, pause=10),
+        slurm.WaitForSlurmAvailable(),
         ndd.RunNDDViaSlurm(),
+        config.CopySSHCredentialsIntoWindows7Partition(),
+        boot.SetBootIntoLocalWin7(),
+        ssh.RebootLinuxHost(*ssh.Timeouts.TINY),
+        ssh.WaitUntilBootedIntoWindows7(*ssh.Timeouts.BIG),
+        boot.ResetBoot(),
+        ssh.RebootWindowsHost(*ssh.Timeouts.TINY),
+        ssh.WaitForSSHAvailable(*ssh.Timeouts.NORMAL),
     ]

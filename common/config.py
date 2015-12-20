@@ -89,15 +89,22 @@ class WithAMTCredentials(stage.Stage):
         self.amt_creds = amt_creds.AMTCredentialsProvider(args.p)
 
 
-@Option.requires('-s', help='ssh login', metavar='LOGIN', default='root')
+@Option.requires('-ll', help='ssh login for Linux',
+                 metavar='LOGIN', default='root')
+@Option.requires('-lw', help='ssh login for Windows',
+                 metavar='LOGIN', default='Administrator')
 class WithSSHCredentials(stage.Stage):
+    def get_login(self):
+        return self.ssh_login_linux
+
     def parse(self, args):
         super(WithSSHCredentials, self).parse(args)
-        self.ssh_login = args.s
+        self.ssh_login_linux = args.ll
+        self.ssh_login_windows = args.lw
 
-    def run_ssh(self, host, args, opts=[]):
+    def run_ssh(self, host, args, login=None, opts=[]):
         return proc.run_remote_process(
-            host.name, self.ssh_login, args, host.state.log, opts)
+            host.name, self.get_login(), args, host.state.log, opts)
 
 
 @Option.requires('-l', help='local address', metavar='ADDR')
@@ -123,3 +130,15 @@ class WithBannedHosts(stage.Stage):
     def parse(self, args):
         super(WithBannedHosts, self).parse(args)
         self.banned_hosts = args.b
+
+
+@Option.requires(
+    '-wp', help='Windows 7 root partition label',
+    metavar='LABEL', default='windows7')
+class WithWindows7Partition(stage.Stage):
+    def parse(self, args):
+        super(WithWindows7Partition, self).parse(args)
+        self.win7_partition = args.wp
+
+    def get_win7_partition(self):
+        return '/dev/disk/by-partlabel/{}'.format(self.win7_partition)
