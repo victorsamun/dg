@@ -22,6 +22,8 @@ class Option(object):
         parser.add_argument(
             '-m', choices=[method.name for method in methods],
             help='Deploy method', required=True)
+        parser.add_argument(
+            '-C', help='Colored log output', action='store_true', default=False)
 
     @staticmethod
     def choose_method(methods, raw_args):

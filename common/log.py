@@ -1,11 +1,12 @@
 import logging
 import termcolor
 
-class ColoredFormatter(logging.Formatter):
-    def __init__(self):
-        super(ColoredFormatter, self).__init__(
+class CustomFormatter(logging.Formatter):
+    def __init__(self, colored):
+        super(CustomFormatter, self).__init__(
             '%(asctime)s - %(filename)s:%(lineno)d - %(levelname)s - ' +
             '%(message)s')
+        self.colored = colored
 
     @staticmethod
     def get_color(record):
@@ -16,13 +17,15 @@ class ColoredFormatter(logging.Formatter):
         }.get(record.levelno)
 
     def format(self, record):
-        return termcolor.colored(
-            super(ColoredFormatter, self).format(record),
-            ColoredFormatter.get_color(record))
+        base = super(CustomFormatter, self).format(record)
+        if self.colored:
+            return termcolor.colored(base, CustomFormatter.get_color(record))
+        else:
+            return base
 
 
-def init(logger):
+def init(logger, colored):
     logger.setLevel(logging.INFO)
     handler = logging.StreamHandler()
-    handler.setFormatter(ColoredFormatter())
+    handler.setFormatter(CustomFormatter(colored))
     logger.addHandler(handler)
