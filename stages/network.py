@@ -1,3 +1,4 @@
+import os
 import subprocess
 
 from common import config, stage
@@ -15,7 +16,10 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
         self.server = None
 
     def setup(self):
-        self.server = subprocess.Popen(['iperf', '-s'])
+        self.output = open(os.devnull, 'w')
+        self.server = subprocess.Popen(['iperf', '-s'],
+                                       stdout = self.output,
+                                       stderr = subprocess.STDOUT)
 
     def run_single(self, host):
         rv, output = self.run_ssh(
@@ -29,8 +33,18 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
                 return self.fail(
                     ('insufficient network speed: need {} Mbits/s, ' +
                      'got {} Mbits/s').format(self.minimum, speed))
+            elif speed < self.minimum * 1.2:
+                host.state.log.warning(
+                    ('measured network speed for {} is {} Mbits/s, ' +
+                     'which is close to minimum of {} Mbits/s').format(
+                        host.name, speed, self.minimum))
+            else:
+                host.state.log.info(
+                    'measured network speed for {} is {} Mbits/s'.format(
+                        host.name, speed))
             return self.ok()
 
     def teardown(self):
+        self.output.close()
         self.server.terminate()
         self.server = None
