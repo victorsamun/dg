@@ -5,8 +5,8 @@ from common import config, stage
 
 class Timeouts:
     TINY   = (datetime.timedelta(seconds=1),  datetime.timedelta(seconds=5))
-    NORMAL = (datetime.timedelta(seconds=10), datetime.timedelta(minutes=10))
-    BIG    = (datetime.timedelta(seconds=30), datetime.timedelta(minutes=20))
+    NORMAL = (datetime.timedelta(minutes=1),  datetime.timedelta(minutes=10))
+    BIG    = (datetime.timedelta(minutes=1),  datetime.timedelta(minutes=20))
 
 
 class WaitForRemoteCondition(config.WithSSHCredentials, stage.ParallelStage):
