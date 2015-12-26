@@ -114,9 +114,9 @@ class WithSSHCredentials(stage.Stage):
         self.ssh_login_linux = args.ll
         self.ssh_login_windows = args.lw
 
-    def run_ssh(self, host, args, login=None, opts=[]):
+    def run_ssh(self, host, args, login, opts=[]):
         return proc.run_remote_process(
-            host.name, self.get_login(), args, host.state.log, opts)
+            host.name, login, args, host.state.log, opts)
 
 
 @Option.requires('-l', help='local address', metavar='ADDR')

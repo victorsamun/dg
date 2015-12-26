@@ -24,7 +24,8 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
     def run_single(self, host):
         rv, output = self.run_ssh(
             host,
-            ['iperf', '-c', self.local_addr, '-t', str(self.time), '-y', 'c'])
+            ['iperf', '-c', self.local_addr, '-t', str(self.time), '-y', 'c'],
+            login=self.ssh_login_linux)
         if rv != 0:
             return self.fail('failed to execute iperf -c, rv is {}'.format(rv))
         else:

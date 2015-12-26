@@ -6,7 +6,8 @@ class RunCommands(stage.ParallelStage):
         return []
 
     def run_single(self, host):
-        rvs = [self.run_ssh(host, cmd) for cmd in self.get_commands(host)]
+        rvs = [self.run_ssh(host, cmd, login=self.ssh_login_linux)
+               for cmd in self.get_commands(host)]
 
         if any(map(lambda (rv, _): rv != 0, rvs)):
             return self.fail('failed to {}'.format(self.__class__.name))

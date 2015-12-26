@@ -4,7 +4,8 @@ from common import config, stage
 
 class DiskBase(config.WithSSHCredentials, stage.ParallelStage):
     def call_to_disk(self, host, cmd):
-        return self.run_ssh(host, ['/usr/local/bin/disk.py', cmd, host.disk])
+        return self.run_ssh(host, ['/usr/local/bin/disk.py', cmd, host.disk],
+                            login=self.ssh_login_linux)
 
     def run_single(self, host):
         if not host.disk:
@@ -26,7 +27,9 @@ class DetermineDisk(config.WithSSHCredentials, stage.SimpleStage):
     def run_single(self, host):
         def with_disk(pattern):
             disk = '/dev/disk/by-id/{}'.format(host.props['disk'])
-            return self.run_ssh(host, [pattern.format(disk)])
+            return self.run_ssh(host, [pattern.format(disk)],
+                                login=self.ssh_login_linux)
+
 
         rv, count = (
             with_disk('shopt -s nullglob; disks=({}); echo ${{#disks[@]}}'))
@@ -52,7 +55,8 @@ class FreeDisk(config.WithSSHCredentials, stage.ParallelStage):
 
     def run_single(self, host):
         rv, _ = self.run_ssh(
-            host, ['if mountpoint /place; then umount /place; fi'])
+            host, ['if mountpoint /place; then umount /place; fi'],
+            login=self.ssh_login_linux)
         if rv != 0:
             return self.fail('failed to free local disk')
         else:

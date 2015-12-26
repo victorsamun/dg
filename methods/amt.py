@@ -31,7 +31,7 @@ class AMTMethod(method.Method):
         config.CopySSHCredentialsIntoWindows7Partition(),
         boot.SetBootIntoLocalWin7(),
         ssh.RebootLinuxHost(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoWindows7(*ssh.Timeouts.BIG),
+        ssh.WaitUntilBootedIntoWindows(*ssh.Timeouts.BIG),
         boot.ResetBoot(),
         ssh.RebootWindowsHost(*ssh.Timeouts.TINY),
         ssh.WaitForSSHAvailable(*ssh.Timeouts.NORMAL),
