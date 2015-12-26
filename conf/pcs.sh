@@ -1,7 +1,6 @@
-METHOD=amt
-DG_GROUPS=(hogs)
-LOCAL_ADDRESS=172.16.12.101
-AMTPASSWD=/root/dg/amtpasswd
+METHOD=simple
+DG_HOSTS=(uzer-pc)
+LOCAL_ADDRESS=172.16.10.228
 
 part() {
     echo "/dev/disk/by-partlabel/$1"

@@ -51,10 +51,14 @@ config=$1
 . "$config"
 
 cmdline=("$(choose_locker "${LOCK[@]}")" "${LOCK[@]}"
-         python "$BASE/main.py" -g "$GROUP" -m "$METHOD")
+         python "$BASE/main.py" -m "$METHOD")
 
 if ! [[ -z "$LOCAL_ADDRESS" ]]; then cmdline+=("-l" "$LOCAL_ADDRESS"); fi
 if ! [[ -z "$AMTPASSWD" ]]; then cmdline+=("-p" "$AMTPASSWD"); fi
+
+for group in "${DG_GROUPS[@]}"; do cmdline+=("-g" "$group"); done
+for host in "${DG_HOSTS[@]}"; do cmdline+=("-H" "$host"); done
+
 for image in "${NDD[@]}"; do cmdline+=("-n" "$image"); done
 for host in "${BAN[@]}"; do cmdline+=("-b" "$host"); done
 
