@@ -4,6 +4,8 @@ from common import config, stage
 
 class ConfigureDisk(config.WithSSHCredentials, config.WithConfigURL,
                     stage.ParallelStage):
+    name = 'call disk.py to configure state of local disk'
+
     def run_single(self, host):
         rv, _ = self.run_ssh(host, ['disk.py', '-c', self.config_url],
                              login=self.ssh_login_linux)
