@@ -6,7 +6,7 @@ class ConfigureDisk(config.WithSSHCredentials, config.WithConfigURL,
                     stage.ParallelStage):
     def run_single(self, host):
         rv, _ = self.run_ssh(host, ['disk.py', '-c', self.config_url],
-                             login=self.ssh_login)
+                             login=self.ssh_login_linux)
         if rv != 0:
             return self.fail('call to disk.py failed')
         else:
