@@ -1,7 +1,20 @@
 import argparse
 
-import stage
+import stage, state
 from util import amt_creds, proc
+
+def execute_with(raw_args, methods):
+    method_cls = Option.choose_method(methods, raw_args)
+
+    parser = Option.get_method_parser(method_cls, raw_args)
+    method_args = parser.parse_args(raw_args)
+
+    method = method_cls()
+    method.parse(method_args)
+    the_state = state.State(parser, method_args)
+
+    return 0 if method.run(the_state) else 1
+
 
 class Option(object):
     description = 'Deploy some machines'
@@ -17,13 +30,10 @@ class Option(object):
 
     @staticmethod
     def add_common_params(parser, methods):
-        parser.add_argument(
-            '-g', metavar='GROUP', help='Group to deploy', required=True)
+        state.State.add_params(parser)
         parser.add_argument(
             '-m', choices=[method.name for method in methods],
             help='Deploy method', required=True)
-        parser.add_argument(
-            '-C', help='Colored log output', action='store_true', default=False)
 
     @staticmethod
     def choose_method(methods, raw_args):
@@ -35,11 +45,11 @@ class Option(object):
         return names[args.m]
 
     @staticmethod
-    def get_method_args(method, raw_args):
+    def get_method_parser(method, raw_args):
         parser = argparse.ArgumentParser(description=Option.description)
         Option.add_common_params(parser, [method])
         Option.add_required(parser, method)
-        return parser.parse_args(raw_args)
+        return parser
 
     @staticmethod
     def requires(*args, **kwargs):

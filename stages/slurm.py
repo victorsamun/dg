@@ -3,6 +3,10 @@ import time
 from common import stage
 from util import hosts, proc
 
+class Timeouts:
+    TINY   = (1, 0)
+    NORMAL = (3, 10)
+
 class WaitForSlurmAvailable(stage.Stage):
     name = 'ensure SLURM is available on the hosts'
 
@@ -12,9 +16,8 @@ class WaitForSlurmAvailable(stage.Stage):
 
     def step(self, state):
         absent_hosts = dict((host.sname, host) for host in state.active_hosts)
-        rv, output = proc.run_process(
-            ['sinfo', '-p', state.group, '-t', 'idle', '-h', '-o', '%n'],
-            state.log)
+        rv, output = proc.run_process(['sinfo', '-t', 'idle', '-h', '-o', '%n'],
+                                      state.log)
         if rv == 0:
             for name in output.strip().split('\n'):
                 if name in absent_hosts:

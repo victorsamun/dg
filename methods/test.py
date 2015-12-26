@@ -9,7 +9,7 @@ class TestMethod(method.Method):
     stages = [
         basic.InitHosts(),
         basic.ExcludeBannedHosts(),
-        slurm.WaitForSlurmAvailable(),
+        slurm.WaitForSlurmAvailable(*slurm.Timeouts.TINY),
         ssh.WaitForSSHAvailable(*ssh.Timeouts.TINY),
         network.EnsureNetworkSpeed(),
     ]

@@ -5,8 +5,15 @@ class InitHosts(config.WithConfigURL, stage.Stage):
     name = 'get initial host list'
 
     def run(self, state):
-        for sname in cfg.get(self.config_url, state.group)['hosts']:
-            host.Host(state, cfg.get(self.config_url, sname))
+        all_hosts = set(
+            map(lambda sname: cfg.get(self.config_url, sname)['name'],
+                state.hosts))
+
+        for group in state.groups:
+            all_hosts |= set(cfg.get(self.config_url, group)['hosts'])
+
+        for name in all_hosts:
+            host.Host(state, cfg.get(self.config_url, name))
 
 
 class ExcludeBannedHosts(config.WithBannedHosts, stage.Stage):

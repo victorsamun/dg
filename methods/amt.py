@@ -26,7 +26,7 @@ class AMTMethod(method.Method):
         disk.ConfigureDisk(),
         config.StoreCOWConfig(),
         network.EnsureNetworkSpeed(),
-        slurm.WaitForSlurmAvailable(),
+        slurm.WaitForSlurmAvailable(*slurm.Timeouts.NORMAL),
         ndd.RunNDDViaSlurm(),
         config.CopySSHCredentialsIntoWindows7Partition(),
         boot.SetBootIntoLocalWin7(),
