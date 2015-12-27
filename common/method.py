@@ -13,17 +13,27 @@ class Method(object):
     def run(self, state):
         for index, stage in enumerate(self.stages):
             state.log.info('running stage "{}"'.format(stage))
-            stage.run(state)
-            state.log.info('finished "{}"'.format(stage))
-            state.log.info('active hosts after this stage: {}'.format(
-                hosts.format_hosts(state.active_hosts)))
+            try:
+                stage.run(state)
+                state.log.info('finished "{}"'.format(stage))
+                state.log.info('active hosts after this stage: {}'.format(
+                    hosts.format_hosts(state.active_hosts)))
+            except (KeyboardInterrupt, Exception) as e:
+                state.log.exception(e)
+                state.log.error('stage "{}" failed completely'.format(stage))
+                for host in set(state.active_hosts):
+                    host.fail(stage, 'stage completely failed')
 
             if len(state.failed_hosts) > 0:
                 state.log.warning('failed hosts after "{}": {}'.format(
                     stage.name, hosts.format_hosts(state.failed_hosts)))
                 state.log.warning('doing rollback for those')
                 for stage in reversed(self.stages[:index+1]):
-                    stage.rollback(state)
+                    try:
+                        stage.rollback(state)
+                    except Exception as e:
+                        state.log.exception(e)
+                        state.log.error('rollback of "{}" failed')
                 state.all_failed_hosts.update(state.failed_hosts)
                 state.failed_hosts.clear()
 

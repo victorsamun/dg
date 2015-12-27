@@ -29,7 +29,11 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
         if rv != 0:
             return self.fail('failed to execute iperf -c, rv is {}'.format(rv))
         else:
-            speed = int(output.strip().split(',')[8]) / 1000000
+            tokens = output.strip().split(',')
+            if len(tokens) != 9:
+                return self.fail(
+                    'failed to parse iperf output, it was: {}'.format(output))
+            speed = int(tokens[8]) / 1000000
             if speed < self.minimum:
                 return self.fail(
                     ('insufficient network speed: need {} Mbits/s, ' +
