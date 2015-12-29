@@ -14,6 +14,9 @@ class Timeouts:
 Command = collections.namedtuple('Command', ('login', 'command'))
 
 
+REBOOT_MARKER='/tmp/rebooting'
+
+
 class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
     def __init__(self, step_timeout, total_timeout):
         super(ExecuteRemoteCommands, self).__init__()
@@ -39,6 +42,9 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
                     self.ignore_errors()):
                     return self.ok()
             else:
+                host.state.log.info(
+                    'condition not yet met, sleeping for {} seconds'.format(
+                        self.step_timeout.seconds))
                 time.sleep(self.step_timeout.seconds)
         return self.fail('failed to execute remote commands')
 
@@ -74,15 +80,19 @@ class WaitUntilBootedIntoCOWMemory(ExecuteRemoteCommands):
     name = 'wait with SSH until host boots into COW memory image'
 
     def get_commands(self):
-        return [Command(login=self.ssh_login_linux,
-                        command=['grep', '-q', 'cowtype=mem', '/proc/cmdline'])]
+        return [Command(
+            login=self.ssh_login_linux,
+            command=['grep -q cowtype=mem /proc/cmdline && '
+                     '! test -f {}'.format(REBOOT_MARKER)])]
 
 
 class RebootLinuxHost(ExecuteRemoteCommands):
     name = 'reboot Linux host with SSH'
 
     def get_commands(self):
-        return [Command(login=self.ssh_login_linux, command=['reboot'])]
+        return [Command(
+            login=self.ssh_login_linux,
+            command=['touch {} && reboot'.format(REBOOT_MARKER)])]
 
     def ignore_errors(self):
         return True
