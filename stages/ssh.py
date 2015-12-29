@@ -43,7 +43,7 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
                     return self.ok()
             else:
                 host.state.log.info(
-                    'condition not yet met, sleeping for {} seconds'.format(
+                    'condition not met yet, sleeping for {} seconds'.format(
                         self.step_timeout.seconds))
                 time.sleep(self.step_timeout.seconds)
         return self.fail('failed to execute remote commands')
