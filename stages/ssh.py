@@ -35,7 +35,8 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
             for command in self.get_commands():
-                if self.check_result(host, command) == 0:
+                if (self.check_result(host, command) == 0 or
+                    self.ignore_errors()):
                     return self.ok()
             else:
                 time.sleep(self.step_timeout.seconds)
