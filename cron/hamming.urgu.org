@@ -4,3 +4,4 @@ PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 28 22 * * * root /root/dg/cron.sh /root/dg/conf/test.sh
 30 22 * * * root /root/dg/cron.sh /root/dg/conf/hogs.sh
+23 40 * * * root /root/dg/cron.sh /root/dg/conf/pcs.sh
