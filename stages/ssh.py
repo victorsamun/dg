@@ -26,9 +26,6 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
     def get_commands(self):
         raise NotImplementedError()
 
-    def ignore_errors(self):
-        return False
-
     def check_result(self, host, command):
         rv, _ = self.run_ssh(host, command.command,
                              login=command.login, opts=['ConnectTimeout=1'])
@@ -38,8 +35,7 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
             for command in self.get_commands():
-                if (self.check_result(host, command) == 0 or
-                    self.ignore_errors()):
+                if self.check_result(host, command) == 0:
                     return self.ok()
             else:
                 host.state.log.info(
@@ -92,10 +88,7 @@ class RebootLinuxHost(ExecuteRemoteCommands):
     def get_commands(self):
         return [Command(
             login=self.ssh_login_linux,
-            command=['touch {} && reboot'.format(REBOOT_MARKER)])]
-
-    def ignore_errors(self):
-        return True
+            command=['touch {} && shutdown -r'.format(REBOOT_MARKER)])]
 
 
 class RebootWindowsHost(ExecuteRemoteCommands):
@@ -104,9 +97,6 @@ class RebootWindowsHost(ExecuteRemoteCommands):
     def get_commands(self):
         return [Command(login=self.ssh_login_windows,
                         command=['shutdown', '/r', '/t', '0'])]
-
-    def ignore_errors(self):
-        return True
 
 
 class RebootHost(CombineCommands, RebootLinuxHost, RebootWindowsHost):
