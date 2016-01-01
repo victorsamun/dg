@@ -3,26 +3,38 @@
 BASE=$(dirname "$0")
 
 no_lock() {
-  "$@"
+  config=$1; shift
+  flock -n -E 10 -o "$config" "$@"; rv="$?"
+  if [[ "$rv" -eq 10 ]]; then
+    echo "$config is locked now, exiting"
+  fi
+  return "$rv"
 }
 
 locked() {
-  lockfile=$1; shift
-  flock -s -n -E 10 -o "$lockfile" "$@"; rv="$?"
+  config=$1; lockfile=$2; shift 2
+  flock -n -E 10 -o "$config" \
+    flock -s -n -E 11 -o "$lockfile" \
+    "$@"; rv="$?"
   if [[ "$rv" -eq 10 ]]; then
+    echo "$config is locked now, exiting"
+  elif [[ "$rv" -eq 11 ]]; then
     echo "$lockfile is locked now, exiting"
   fi
   return "$rv"
 }
 
 double_locked() {
-  lockfile1=$1; lockfile2=$2; shift 2
-  flock -s -n -E 10 -o "$lockfile1" flock -s -n -E 11 -o "$lockfile2" \
+  config=$1; lockfile1=$2; lockfile2=$3; shift 3
+  flock -n -E 10 -o "$config" \
+    flock -s -n -E 11 -o "$lockfile1" \
+    flock -s -n -E 12 -o "$lockfile2" \
     "$@"; rv="$?"
   if [[ "$rv" -eq 10 ]]; then
+    echo "$config is locked now, exiting"
+  elif [[ "$rv" -eq 11 ]]; then
     echo "$lockfile1 is locked now, exiting"
-  fi
-  if [[ "$rv" -eq 11 ]]; then
+  elif [[ "$rv" -eq 12 ]]; then
     echo "$lockfile2 is locked now, exiting"
   fi
   return "$rv"
@@ -50,7 +62,7 @@ if [[ "$#" -ne 1 ]]; then usage "$0"; fi
 config=$1
 . "$config"
 
-cmdline=("$(choose_locker "${LOCK[@]}")" "${LOCK[@]}"
+cmdline=("$(choose_locker "${LOCK[@]}")" "$config" "${LOCK[@]}"
          python "$BASE/main.py" -m "$METHOD")
 
 if ! [[ -z "$LOCAL_ADDRESS" ]]; then cmdline+=("-l" "$LOCAL_ADDRESS"); fi
