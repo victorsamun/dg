@@ -8,7 +8,7 @@ no_lock() {
 
 locked() {
   lockfile=$1; shift
-  flock -n -E 10 -o "$lockfile" "$@"; rv="$?"
+  flock -s -n -E 10 -o "$lockfile" "$@"; rv="$?"
   if [[ "$rv" -eq 10 ]]; then
     echo "$lockfile is locked now, exiting"
   fi
@@ -17,7 +17,7 @@ locked() {
 
 double_locked() {
   lockfile1=$1; lockfile2=$2; shift 2
-  flock -n -E 10 -o "$lockfile1" flock -n -E 11 -o "$lockfile2" \
+  flock -s -n -E 10 -o "$lockfile1" flock -s -n -E 11 -o "$lockfile2" \
     "$@"; rv="$?"
   if [[ "$rv" -eq 10 ]]; then
     echo "$lockfile1 is locked now, exiting"
