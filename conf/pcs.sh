@@ -1,5 +1,5 @@
 METHOD=simple
-DG_HOSTS=(uzer-pc)
+DG_HOSTS=(uzer-pc canion)
 DG_GROUPS=(asus)
 LOCAL_ADDRESS=172.16.10.228
 
