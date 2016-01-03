@@ -30,7 +30,11 @@ def set_computer_name():
         ['/sbin/hostname', '-f']).strip().decode('utf-8')
 
     with xml_sysprep(sys.argv[1]) as tree:
-        for e in tree.getElementsByTagName('ComputerName'):
+        elems = list(tree.getElementsByTagName('ComputerName'))
+        if len(elems) != 2:
+            raise ValueError('Wrong sysprep file')
+
+        for e in elems:
             e.firstChild.nodeValue = hostname
 
 
