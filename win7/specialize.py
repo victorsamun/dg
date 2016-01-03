@@ -32,7 +32,7 @@ def set_computer_name():
     with xml_sysprep(sys.argv[1]) as tree:
         elems = list(tree.getElementsByTagName('ComputerName'))
         if len(elems) != 2:
-            raise ValueError('Wrong sysprep file')
+            raise ValueError('Wrong sysprep file: count(ComputerName) != 2')
 
         for e in elems:
             e.firstChild.nodeValue = hostname
