@@ -22,16 +22,6 @@
       <Diagnostics>
         <OptIn>false</OptIn>
       </Diagnostics>
-      <ImageInstall>
-        <OSImage>
-          <InstallTo>
-            <DiskID>0</DiskID>
-            <PartitionID>2</PartitionID>
-          </InstallTo>
-          <WillShowUI>OnError</WillShowUI>
-          <InstallToAvailablePartition>false</InstallToAvailablePartition>
-        </OSImage>
-      </ImageInstall>
       <UserData>
         <AcceptEula>true</AcceptEula>
         <FullName>student</FullName>
@@ -99,36 +89,6 @@
         <SkipUserOOBE>true</SkipUserOOBE>
       </OOBE>
       <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
-      <FirstLogonCommands>
-        <SynchronousCommand wcm:action="add">
-          <RequiresUserInput>false</RequiresUserInput>
-          <Order>1</Order>
-          <Description>Disable Auto Updates</Description>
-          <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 1 /f</CommandLine>
-        </SynchronousCommand>
-      </FirstLogonCommands>
-      <AutoLogon>
-        <Password>
-          <Value>qwer</Value>
-          <PlainText>true</PlainText>
-        </Password>
-        <Enabled>true</Enabled>
-        <Username>student</Username>
-      </AutoLogon>
-      <UserAccounts>
-        <LocalAccounts>
-          <LocalAccount wcm:action="add">
-            <Password>
-              <Value>qwer</Value>
-              <PlainText>true</PlainText>
-            </Password>
-            <Description/>
-            <DisplayName>student</DisplayName>
-            <Group>Administrators</Group>
-            <Name>student</Name>
-          </LocalAccount>
-        </LocalAccounts>
-      </UserAccounts>
     </component>
     <component language="neutral" name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
       <RegisteredOwner>student</RegisteredOwner>
@@ -141,36 +101,6 @@
         <SkipUserOOBE>true</SkipUserOOBE>
       </OOBE>
       <DisableAutoDaylightTimeSet>false</DisableAutoDaylightTimeSet>
-      <FirstLogonCommands>
-        <SynchronousCommand wcm:action="add">
-          <RequiresUserInput>false</RequiresUserInput>
-          <Order>1</Order>
-          <Description>Disable Auto Updates</Description>
-          <CommandLine>reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\WindowsUpdate\Auto Update" /v AUOptions /t REG_DWORD /d 1 /f</CommandLine>
-        </SynchronousCommand>
-      </FirstLogonCommands>
-      <AutoLogon>
-        <Password>
-          <Value>qwer</Value>
-          <PlainText>true</PlainText>
-        </Password>
-        <Enabled>true</Enabled>
-        <Username>user</Username>
-      </AutoLogon>
-      <UserAccounts>
-        <LocalAccounts>
-          <LocalAccount wcm:action="add">
-            <Password>
-              <Value>qwer</Value>
-              <PlainText>true</PlainText>
-            </Password>
-            <Description/>
-            <DisplayName>user</DisplayName>
-            <Group>Administrators</Group>
-            <Name>user</Name>
-          </LocalAccount>
-        </LocalAccounts>
-      </UserAccounts>
     </component>
   </settings>
   <settings pass="offlineServicing">
