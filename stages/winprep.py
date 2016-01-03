@@ -27,7 +27,7 @@ def xml_sysprep(filename):
 
 def set_computer_name():
     hostname = subprocess.check_output(
-        ['/bin/hostname', '-f']).strip().decode('utf-8')
+        ['/sbin/hostname', '-f']).strip().decode('utf-8')
 
     with xml_sysprep(sys.argv[1]) as tree:
         for e in tree.getElementsByTagName('ComputerName'):
