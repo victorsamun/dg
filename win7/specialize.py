@@ -49,6 +49,7 @@ def main():
             step()
         except Exception as e:
             logging.error("Failed step %s: %s", step.__name__, e)
+            sys.exit(2)
         else:
             logging.info("%s: OK", step.__name__)
 
