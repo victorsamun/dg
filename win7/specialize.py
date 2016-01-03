@@ -25,11 +25,11 @@ def xml_sysprep(filename):
         f.write(unescape(tree.toxml()))
 
 
-def set_computer_name():
+def set_computer_name(filename):
     hostname = subprocess.check_output(
         ['/sbin/hostname', '-f']).strip().decode('utf-8')
 
-    with xml_sysprep(sys.argv[1]) as tree:
+    with xml_sysprep(filename) as tree:
         elems = list(tree.getElementsByTagName('ComputerName'))
         if len(elems) != 2:
             raise ValueError('Wrong sysprep file: count(ComputerName) != 2')
@@ -42,11 +42,12 @@ def main():
     if len(sys.argv) < 2:
         sys.exit("`sysprep` template not specified. Winprep terminated")
 
+    args = sys.argv[1:]
     steps = (set_computer_name,)
 
     for step in steps:
         try:
-            step()
+            step(*args)
         except Exception as e:
             logging.error("Failed step %s: %s", step.__name__, e)
             sys.exit(2)
