@@ -14,7 +14,7 @@ class Timeouts:
 Command = collections.namedtuple('Command', ('login', 'command'))
 
 
-REBOOT_MARKER='/tmp/rebooting'
+REBOOT_MARKER = '/tmp/rebooting'
 
 
 class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
