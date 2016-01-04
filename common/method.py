@@ -26,7 +26,7 @@ class Method(object):
 
             if len(state.failed_hosts) > 0:
                 state.log.warning('failed hosts after "{}": {}'.format(
-                    stage.name, hosts.format_hosts(state.failed_hosts)))
+                    stage, hosts.format_hosts(state.failed_hosts)))
                 state.log.warning('doing rollback for those')
                 for stage in reversed(self.stages[:index+1]):
                     try:
