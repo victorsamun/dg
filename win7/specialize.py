@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 
+from collections import namedtuple
 import contextlib
+import functools
 import logging
 import subprocess
 import sys
@@ -16,6 +18,9 @@ else:
     from html import unescape
 
 
+LOGGER = logging.getLogger()
+
+
 @contextlib.contextmanager
 def xml_sysprep(filename):
     tree = xml.dom.minidom.parse(filename)
@@ -25,7 +30,27 @@ def xml_sysprep(filename):
         f.write(unescape(tree.toxml()))
 
 
-def modify_sysprep(filename):
+def log(internal_step=False):
+    def _log(fn):
+        @functools.wraps(fn)
+        def wrapper(*args, **kwargs):
+            fname = fn.__name__
+            try:
+                fn(*args, **kwargs)
+                LOGGER.info("%s: OK", fname)
+            except Exception as e:
+                LOGGER.error("Failed '%s': '%s'", fname, e)
+                if internal_step:
+                    raise Exception("`%s` failed" % fname)
+                else:
+                    raise
+        return wrapper
+    return _log
+
+
+@log()
+def modify_sysprep(args):
+    @log(True)
     def set_hostname(tree):
         hostname = subprocess.check_output(
             ['/sbin/hostname', '-f']).strip().decode('utf-8')
@@ -38,26 +63,36 @@ def modify_sysprep(filename):
             e.firstChild.nodeValue = hostname
 
     steps = (set_hostname,)
-    with xml_sysprep(filename) as tree:
+    with xml_sysprep(args.fn_sysprep) as tree:
         for step in steps:
             step(tree)
+
+
+RunArguments = namedtuple('RunArguments', ('fn_sysprep', ))
+
+
+def prepare_log():
+    handler = logging.StreamHandler()
+    handler.setFormatter(logging.Formatter(
+        '%(asctime)s - %(levelname)s - %(message)s'))
+    LOGGER.addHandler(handler)
+    LOGGER.setLevel(logging.INFO)
 
 
 def main():
     if len(sys.argv) < 2:
         sys.exit("`sysprep` template not specified. Winprep terminated")
 
-    args = sys.argv[1:]
+    args = RunArguments(*sys.argv[1:])
     steps = (modify_sysprep,)
 
-    for step in steps:
-        try:
-            step(*args)
-        except Exception as e:
-            logging.error("Failed step %s: %s", step.__name__, e)
-            sys.exit(2)
-        else:
-            logging.info("%s: OK", step.__name__)
+    prepare_log()
+
+    try:
+        for step in steps:
+            step(args)
+    except Exception:
+        sys.exit(2)
 
 
 if __name__ == '__main__':
