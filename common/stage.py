@@ -8,7 +8,7 @@ class Stage(object):
         return self.__class__.name
 
     def run(self, state):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def rollback(self, state):
         pass
@@ -28,10 +28,10 @@ class SimpleStage(Stage):
                 self.rollback_single(host)
             except Exception as e:
                 state.log.exception('rollback of {} for {} failed: {}'.format(
-                    self.__class__.name, host.name, e))
+                    self, host.name, e))
 
     def run_single(self, host):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def rollback_single(self, host):
         pass

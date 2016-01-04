@@ -9,8 +9,7 @@ class EnsureRedirectionPossible(config.WithAMTRedirdURL, stage.Stage):
         for host in list(state.active_hosts):
             assert host.amt_host
             if not host.amt_host in possible_hosts:
-                host.fail(self.__class__,
-                          'AMT host not configured in amtredird')
+                host.fail(self, 'AMT host not configured in amtredird')
 
 
 class ChangeRedirection(config.WithAMTRedirdURL, stage.Stage):

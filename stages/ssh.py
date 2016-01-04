@@ -24,7 +24,7 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         self.total_timeout = total_timeout
 
     def get_commands(self):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def check_result(self, host, command):
         rv, _ = self.run_ssh(host, command.command,

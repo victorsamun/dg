@@ -68,7 +68,7 @@ class Option(object):
         required = set()
         for stage in method.stages:
             for cls, args, kwargs in Option.requirements:
-                if issubclass(stage.__class__, cls):
+                if isinstance(stage, cls):
                     required.add((args, frozenset(kwargs.items())))
         for args, skwargs in required:
             kwargs = dict(skwargs)
@@ -114,7 +114,7 @@ class WithSSHCredentials(stage.Stage):
         self.ssh_login_linux = args.ll
         self.ssh_login_windows = args.lw
 
-    def run_ssh(self, host, args, login, opts=[]):
+    def run_ssh(self, host, args, login, opts=None):
         return proc.run_remote_process(
             host.name, login, args, host.state.log, opts)
 
