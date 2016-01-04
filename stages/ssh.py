@@ -36,13 +36,13 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         while datetime.datetime.now() - start < self.total_timeout:
             for command in self.get_commands():
                 if self.check_result(host, command) == 0:
-                    return self.ok()
+                    return
             else:
                 host.state.log.info(
                     'condition not met yet, sleeping for {} seconds'.format(
                         self.step_timeout.seconds))
                 time.sleep(self.step_timeout.seconds)
-        return self.fail('failed to execute remote commands')
+        self.fail('failed to execute remote commands')
 
 
 class CombineCommands(object):

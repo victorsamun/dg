@@ -10,8 +10,7 @@ class RunCommands(stage.ParallelStage):
                for cmd in self.get_commands(host)]
 
         if any(map(lambda (rv, _): rv != 0, rvs)):
-            return self.fail('failed to {}'.format(self))
-        return self.ok()
+            self.fail('failed to {}'.format(self))
 
 
 class StoreCOWConfig(config.WithSSHCredentials, RunCommands):

@@ -37,6 +37,11 @@ class SimpleStage(Stage):
         pass
 
 
+class ParallelStageFailedError(Exception):
+    def __init__(self, reason=None):
+        self.reason = reason
+
+
 def _run_forked((stage, host)):
     return stage.run_single(host)
 
@@ -60,9 +65,9 @@ class ParallelStage(Stage):
                 try:
                     # Timeout is here to handle interruptions properly, otherwise
                     # it will not work as expected due to bug.
-                    rv, reason = result.get(ParallelStage.HUGE_TIMEOUT)
-                    if not rv:
-                        host.fail(self, reason)
+                    result.get(ParallelStage.HUGE_TIMEOUT)
+                except ParallelStageFailedError as e:
+                    host.fail(self, e.reason)
                 except Exception as e:
                     state.log.exception(e)
                     host.fail(self,
@@ -83,8 +88,5 @@ class ParallelStage(Stage):
     def teardown(self):
         pass
 
-    def ok(self):
-        return (True, None)
-
     def fail(self, reason):
-        return (False, reason)
+        raise ParallelStageFailedError(reason)
