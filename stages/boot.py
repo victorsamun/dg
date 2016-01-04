@@ -16,15 +16,15 @@ class ConfigureBoot(config.WithConfigURL, stage.SimpleStage):
 
 
 class SetBootIntoCOWMemory(ConfigureBoot):
-    name = 'enable boot to COW memory image'
+    'enable boot to COW memory image'
     value = 'cow-m'
 
 
 class SetBootIntoLocalWin7(ConfigureBoot):
-    name = 'enable boot to local Windows 7 via GRUB'
+    'enable boot to local Windows 7 via GRUB'
     value = 'grub.windows7'
 
 
 class ResetBoot(ConfigureBoot):
-    name = "reset boot into it's default state"
+    "reset boot into it's default state"
     value = ''

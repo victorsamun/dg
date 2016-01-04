@@ -2,7 +2,7 @@ from clients import config as cfg
 from common import config, host, stage
 
 class InitHosts(config.WithConfigURL, stage.Stage):
-    name = 'get initial host list'
+    'get initial host list'
 
     def run(self, state):
         all_hosts = set(
@@ -17,7 +17,7 @@ class InitHosts(config.WithConfigURL, stage.Stage):
 
 
 class ExcludeBannedHosts(config.WithBannedHosts, stage.Stage):
-    name = 'exclude banned hosts from deployment'
+    'exclude banned hosts from deployment'
 
     def run(self, state):
         for host in list(state.active_hosts):

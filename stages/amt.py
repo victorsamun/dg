@@ -5,7 +5,7 @@ from clients import config as cfg
 from common import config, stage
 
 class DetermineAMTHosts(config.WithConfigURL, stage.SimpleStage):
-    name = 'determine AMT hosts'
+    'determine AMT hosts'
 
     def run_single(self, host):
         amt_host = host.props.get('amt')
@@ -26,7 +26,7 @@ class AMTStage(config.WithAMTCredentials, stage.SimpleStage):
 
 
 class WakeupAMTHosts(AMTStage):
-    name = 'wake up hosts via AMT interface'
+    'wake up hosts via AMT interface'
 
     def run_single(self, host):
         try:
@@ -38,7 +38,7 @@ class WakeupAMTHosts(AMTStage):
 
 
 class ResetAMTHosts(AMTStage):
-    name = 'reset hosts via AMT interface'
+    'reset hosts via AMT interface'
 
     def run_single(self, host):
         try:

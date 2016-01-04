@@ -5,7 +5,7 @@ class Stage(object):
         pass
 
     def __str__(self):
-        return self.__class__.name
+        return self.__class__.__doc__
 
     def run(self, state):
         raise NotImplementedError

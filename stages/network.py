@@ -7,7 +7,7 @@ from util import proc
 class EnsureNetworkSpeed(config.WithLocalAddress,
                          config.WithSSHCredentials,
                          stage.ParallelStage):
-    name = 'ensure sufficient throughput of network interface'
+    'ensure sufficient throughput of network interface'
 
     def __init__(self, poolsize=3, minimum=200, time=5):
         stage.ParallelStage.__init__(self, poolsize)

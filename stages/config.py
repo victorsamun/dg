@@ -15,7 +15,7 @@ class RunCommands(stage.ParallelStage):
 
 
 class StoreCOWConfig(config.WithSSHCredentials, RunCommands):
-    name = 'store Puppet SSL stuff into COW config partition'
+    'store Puppet SSL stuff into COW config partition'
 
     def get_commands(self, host):
         return map(lambda cmd: ['/root/cow/conf.sh'] + cmd, [
@@ -30,7 +30,7 @@ class StoreCOWConfig(config.WithSSHCredentials, RunCommands):
 
 class CopySSHCredentialsIntoWindows7Partition(
         config.WithSSHCredentials, config.WithWindows7Partition, RunCommands):
-    name = 'copy SSH credentials into Windows 7 root partition'
+    'copy SSH credentials into Windows 7 root partition'
 
     def get_commands(self, host):
         mountpoint = '/mnt'

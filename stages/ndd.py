@@ -2,7 +2,7 @@ from common import config, stage
 from util import proc
 
 class RunNDDViaSlurm(config.WithLocalAddress, config.WithNDDArgs, stage.Stage):
-    name = 'deploy the images with ndd via SLURM'
+    'deploy the images with ndd via SLURM'
 
     def run(self, state):
         for src, dst in self.ndds:

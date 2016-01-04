@@ -53,14 +53,14 @@ class CombineCommands(object):
 
 
 class WaitForSSHAvailable(ExecuteRemoteCommands):
-    name = 'wait for SSH available on all the hosts'
+    'wait for SSH available on all the hosts'
 
     def get_commands(self):
         return [Command(login=self.ssh_login_linux, command=['exit'])]
 
 
 class WaitUntilBootedIntoWindows(ExecuteRemoteCommands):
-    name = 'wait with SSH until host boots into Windows'
+    'wait with SSH until host boots into Windows'
 
     def get_commands(self):
         return [Command(login=self.ssh_login_windows,
@@ -69,11 +69,11 @@ class WaitUntilBootedIntoWindows(ExecuteRemoteCommands):
 
 class CheckIsAccessibleViaSSH(CombineCommands,
                               WaitForSSHAvailable, WaitUntilBootedIntoWindows):
-    name = 'check whether the host is accessible via SSH in some way'
+    'check whether the host is accessible via SSH in some way'
 
 
 class WaitUntilBootedIntoCOWMemory(ExecuteRemoteCommands):
-    name = 'wait with SSH until host boots into COW memory image'
+    'wait with SSH until host boots into COW memory image'
 
     def get_commands(self):
         return [Command(
@@ -83,7 +83,7 @@ class WaitUntilBootedIntoCOWMemory(ExecuteRemoteCommands):
 
 
 class RebootLinuxHost(ExecuteRemoteCommands):
-    name = 'reboot Linux host with SSH'
+    'reboot Linux host with SSH'
 
     def get_commands(self):
         return [Command(
@@ -92,7 +92,7 @@ class RebootLinuxHost(ExecuteRemoteCommands):
 
 
 class RebootWindowsHost(ExecuteRemoteCommands):
-    name = 'reboot Windows host with SSH'
+    'reboot Windows host with SSH'
 
     def get_commands(self):
         return [Command(login=self.ssh_login_windows,
@@ -100,4 +100,4 @@ class RebootWindowsHost(ExecuteRemoteCommands):
 
 
 class RebootHost(CombineCommands, RebootLinuxHost, RebootWindowsHost):
-    name = 'reboot host with SSH, whether Linux or Windows'
+    'reboot host with SSH, whether Linux or Windows'
