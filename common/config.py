@@ -17,7 +17,6 @@ def execute_with(raw_args, methods):
 
 
 class Option(object):
-    description = 'Deploy some machines'
     requirements = []
     EMPTY = ()
 
@@ -38,7 +37,12 @@ class Option(object):
     @staticmethod
     def choose_method(methods, raw_args):
         names = dict((m.name, m) for m in methods)
-        parser = argparse.ArgumentParser(description=Option.description)
+        description = 'Deploy some machines. Available methods are:\n'
+        for method in methods:
+            description += '  {:<8} {}\n'.format(method.name, method.__doc__)
+        parser = argparse.ArgumentParser(
+            description=description,
+            formatter_class=argparse.RawTextHelpFormatter)
         Option.add_common_params(parser, methods)
         Option.add_all(parser)
         args = parser.parse_args(raw_args)
@@ -119,7 +123,7 @@ class WithSSHCredentials(stage.Stage):
             host.name, login, args, host.state.log, opts)
 
 
-@Option.requires('-l', help='local address', metavar='ADDR')
+@Option.requires('-l', help='Local address', metavar='ADDR')
 class WithLocalAddress(stage.Stage):
     def parse(self, args):
         super(WithLocalAddress, self).parse(args)
@@ -127,7 +131,7 @@ class WithLocalAddress(stage.Stage):
 
 
 @Option.requires(
-    '-n', help='deploy local INPUT into OUTPUT on all the hosts with ndd',
+    '-n', help='Deploy local INPUT into OUTPUT on all the hosts with ndd',
     metavar='INPUT:OUTPUT', action='append', default=Option.EMPTY)
 class WithNDDArgs(stage.Stage):
     def parse(self, args):
@@ -136,7 +140,7 @@ class WithNDDArgs(stage.Stage):
 
 
 @Option.requires(
-    '-b', help='ban HOST, excluding it from deployment',
+    '-b', help='Ban HOST, excluding it from deployment',
     metavar='HOST', action='append', default=Option.EMPTY)
 class WithBannedHosts(stage.Stage):
     def parse(self, args):

@@ -4,6 +4,7 @@ from common import method
 from stages import basic, boot, config, ndd, network, slurm, ssh
 
 class SimpleMethod(method.Method):
+    'method for deploying pre-configured machines'
     name = 'simple'
 
     stages = [

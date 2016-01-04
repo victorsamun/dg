@@ -4,6 +4,7 @@ from common import method
 from stages import basic, boot, config, network, slurm, ssh
 
 class TestMethod(method.Method):
+    'simple method used for testing'
     name = 'test'
 
     stages = [

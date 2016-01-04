@@ -6,6 +6,7 @@ from stages import (
 )
 
 class AMTMethod(method.Method):
+    'method for deploying AMT-capable hosts'
     name = 'amt'
 
     stages = [
