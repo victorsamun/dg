@@ -50,7 +50,7 @@ class Option(object):
 
     @staticmethod
     def get_method_parser(method, raw_args):
-        parser = argparse.ArgumentParser(description=Option.description)
+        parser = argparse.ArgumentParser(description=method.__doc__)
         Option.add_common_params(parser, [method])
         Option.add_required(parser, method)
         return parser
