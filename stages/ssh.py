@@ -23,7 +23,7 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         self.step_timeout = step_timeout
         self.total_timeout = total_timeout
 
-    def get_commands(self):
+    def get_commands(self, host):
         raise NotImplementedError
 
     def check_result(self, host, command):
@@ -34,7 +34,7 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
     def run_single(self, host):
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
-            for command in self.get_commands():
+            for command in self.get_commands(host):
                 if self.check_result(host, command) == 0:
                     return
             else:
@@ -46,24 +46,40 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
 
 
 class CombineCommands(object):
-    def get_commands(self):
+    def get_commands(self, host):
         return itertools.chain.from_iterable(
-            cls.get_commands(self) for cls in type(self).__bases__
+            cls.get_commands(self, host) for cls in type(self).__bases__
             if cls is not CombineCommands)
 
 
 class WaitForSSHAvailable(ExecuteRemoteCommands):
     'wait for SSH available on all the hosts'
 
-    def get_commands(self):
+    def get_commands(self, host):
         return [Command(self.ssh_login_linux, ['exit'])]
 
 
-class WaitUntilBootedIntoWindows(ExecuteRemoteCommands):
+class WindowsBase(ExecuteRemoteCommands):
+    def get_commands(self, host):
+        logins = [
+            '{}+{}'.format(host.sname, self.ssh_login_windows),
+            self.ssh_login_windows,
+        ]
+        return map(lambda login: Command(login, self.get_command()), logins)
+
+
+class WaitUntilBootedIntoWindows(WindowsBase):
     'wait with SSH until host boots into Windows'
 
-    def get_commands(self):
-        return [Command(self.ssh_login_windows, ['uname | grep -q NT'])]
+    def get_command(self):
+        return ['uname | grep -q NT']
+
+
+class RebootWindows(WindowsBase):
+    'reboot Windows host with SSH'
+
+    def get_command(self):
+        return ['shutdown', '/r', '/t', '0']
 
 
 class CheckIsAccessibleViaSSH(CombineCommands,
@@ -74,27 +90,20 @@ class CheckIsAccessibleViaSSH(CombineCommands,
 class WaitUntilBootedIntoCOWMemory(ExecuteRemoteCommands):
     'wait with SSH until host boots into COW memory image'
 
-    def get_commands(self):
+    def get_commands(self, host):
         return [Command(self.ssh_login_linux,
                         ['grep -q cowtype=mem /proc/cmdline && '
                          '! test -f {}'.format(REBOOT_MARKER)])]
 
 
-class RebootLinuxHost(ExecuteRemoteCommands):
+class RebootLinux(ExecuteRemoteCommands):
     'reboot Linux host with SSH'
 
-    def get_commands(self):
+    def get_commands(self, host):
         return [Command(
             self.ssh_login_linux,
             ['touch {} && shutdown -r'.format(REBOOT_MARKER)])]
 
 
-class RebootWindowsHost(ExecuteRemoteCommands):
-    'reboot Windows host with SSH'
-
-    def get_commands(self):
-        return [Command(self.ssh_login_windows, ['shutdown', '/r', '/t', '0'])]
-
-
-class RebootHost(CombineCommands, RebootLinuxHost, RebootWindowsHost):
+class RebootHost(CombineCommands, RebootLinux, RebootWindows):
     'reboot host with SSH, whether Linux or Windows'

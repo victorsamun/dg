@@ -118,6 +118,12 @@ class WithSSHCredentials(stage.Stage):
         self.ssh_login_linux = args.ll
         self.ssh_login_windows = args.lw
 
+    def run_scp(self, host, login, src, dst):
+        return proc.run_process(
+            ['scp', '-o', 'PasswordAuthentication=no',
+             src, '{}@{}:{}'.format(login, host, dst)],
+             host.state.log)
+
     def run_ssh(self, host, args, login, opts=None):
         return proc.run_remote_process(
             host.name, login, args, host.state.log, opts)
