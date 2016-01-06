@@ -4,6 +4,7 @@ import itertools
 import time
 
 from common import config, stage
+from util import win
 
 class Timeouts:
     TINY   = (datetime.timedelta(seconds=1),  datetime.timedelta(seconds=5))
@@ -61,11 +62,8 @@ class WaitForSSHAvailable(ExecuteRemoteCommands):
 
 class WindowsBase(ExecuteRemoteCommands):
     def get_commands(self, host):
-        logins = [
-            '{}+{}'.format(host.sname, self.ssh_login_windows),
-            self.ssh_login_windows,
-        ]
-        return map(lambda login: Command(login, self.get_command()), logins)
+        return map(lambda login: Command(login, self.get_command()),
+                   win.get_possible_logins(host, self.ssh_login_windows))
 
 
 class WaitUntilBootedIntoWindows(WindowsBase):

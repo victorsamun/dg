@@ -46,7 +46,8 @@ class CustomizeWindowsSetup(
     def get_commands(self, host):
         mountpoint = '/mnt'
         prefix = '/cygwin64/etc'
-        args = ['-H', '""', '-j', 'runc.urgu.org', '-p', '/etc/smb.pwd']
+        args = ['-H', win.get_hostname(host),
+                '-j', 'runc.urgu.org', '-p', '/etc/smb.pwd']
         if 'userqwer' in host.props['services']:
             args += ['-a', 'user:qwer']
         sysprep_xml = '/mnt/Windows/Panther/unattend.xml'
