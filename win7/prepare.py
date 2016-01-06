@@ -216,7 +216,8 @@ def main(raw_args):
     snapshot_path = get_snapshot_path(disk)
     logging.info('snapshot path is {}'.format(snapshot_path))
     snapshot_name = os.path.basename(snapshot_path)
-    write_snapshot_config(config, vm_name,
+    snapshot_vm_name = '{}-snap'.format(vm_name)
+    write_snapshot_config(config, snapshot_vm_name,
                           get_snapshot_disk_spec(disk, snapshot_path),
                           args.SNAP_CONFIG)
     try:
@@ -235,7 +236,7 @@ def main(raw_args):
         subprocess.check_call(
             ['lvcreate', '-s', '-L', args.s, '-n', snapshot_name, disk_path])
 
-        logging.info('starting {} from snapshot'.format(vm_name))
+        logging.info('starting {} from snapshot'.format(snapshot_vm_name))
         subprocess.check_call(['xl', 'create', args.SNAP_CONFIG])
         assert wait_for_ssh(client, Timeouts.BIG)
 
