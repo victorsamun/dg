@@ -10,7 +10,7 @@ class SimpleMethod(method.Method):
     stages = [
         basic.InitHosts(),
         basic.ExcludeBannedHosts(),
-        ssh.CheckIsAccessibleViaSSH(*ssh.Timeouts.TINY),
+        ssh.CheckIsAccessible(*ssh.Timeouts.TINY),
         boot.SetBootIntoCOWMemory(),
         ssh.RebootHost(*ssh.Timeouts.TINY),
         ssh.WaitUntilBootedIntoCOWMemory(*ssh.Timeouts.NORMAL),
@@ -20,10 +20,10 @@ class SimpleMethod(method.Method):
         slurm.WaitForSlurmAvailable(*slurm.Timeouts.NORMAL),
         ndd.RunNDDViaSlurm(),
         config.CustomizeWindowsSetup(),
-        boot.SetBootIntoLocalWin7(),
+        boot.SetBootIntoNonDefault(),
         ssh.RebootLinux(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoWindows(*ssh.Timeouts.BIG),
+        ssh.WaitUntilBootedIntoNonDefault(*ssh.Timeouts.BIG),
         boot.ResetBoot(),
-        ssh.RebootWindows(*ssh.Timeouts.TINY),
-        ssh.WaitForSSHAvailable(*ssh.Timeouts.NORMAL),
+        ssh.RebootNonDefaultOS(*ssh.Timeouts.TINY),
+        ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.NORMAL),
     ]

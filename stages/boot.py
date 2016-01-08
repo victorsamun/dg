@@ -1,30 +1,43 @@
 from common import config, stage
 from clients import config as cfg
 
+
+def BootsToWindowsByDefault(host):
+    return host.props.get('boot') == ConfigureBoot.WINDOWS
+
+
 class ConfigureBoot(config.WithConfigURL, stage.SimpleStage):
     BOOT_PROP = 'boot'
 
-    def run_single(self, host):
-        cfg.set(self.config_url, host.name,
-                [(ConfigureBoot.BOOT_PROP, self.__class__.value)])
+    COW        = 'cow'
+    COW_MEMORY = 'cow-m'
+    WINDOWS    = 'grub.windows7'
+    DEFAULT    = ''
+
+    def set(self, host, value):
+        cfg.set(self.config_url, host.name, [(ConfigureBoot.BOOT_PROP, value)])
 
     def rollback_single(self, host):
-        if len(self.__class__.value) == 0:
-            return
-        cfg.set(self.config_url, host.name,
-                [(ConfigureBoot.BOOT_PROP, ResetBoot.value)])
+        self.set(host, ConfigureBoot.DEFAULT)
 
 
 class SetBootIntoCOWMemory(ConfigureBoot):
     'enable boot to COW memory image'
-    value = 'cow-m'
+
+    def run_single(self, host):
+        self.set(host, ConfigureBoot.COW_MEMORY)
 
 
-class SetBootIntoLocalWin7(ConfigureBoot):
-    'enable boot to local Windows 7 via GRUB'
-    value = 'grub.windows7'
+class SetBootIntoNonDefault(ConfigureBoot):
+    'enable boot to local OS not booted by default'
+
+    def run_single(self, host):
+        self.set(host, ConfigureBoot.COW if BootsToWindowsByDefault(host)
+                       else ConfigureBoot.WINDOWS)
 
 
 class ResetBoot(ConfigureBoot):
     "reset boot into it's default state"
-    value = ''
+
+    def run_single(self, host):
+        self.set(host, ConfigureBoot.DEFAULT)
