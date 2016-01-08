@@ -106,13 +106,13 @@ class SSHClient(object):
         self.login = login
 
     def ssh(self, *cmd):
-        cmdline = ['ssh', '-o', 'ConnectTimeout=1',
+        cmdline = ['ssh', '-o', 'ConnectTimeout=5',
                    '-l', self.login, self.host] + list(cmd)
         logging.info('running {}'.format(cmdline))
         return subprocess.check_output(cmdline)
 
     def scp(self, src, dest):
-        cmdline = ['scp', '-o', 'ConnectTimeout=1',
+        cmdline = ['scp', '-o', 'ConnectTimeout=5',
                    src, '{}@{}:{}'.format(self.login, self.host, dest)]
         logging.info('running {}'.format(cmdline))
         subprocess.check_call(cmdline)
