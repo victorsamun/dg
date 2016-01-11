@@ -1,7 +1,7 @@
 if WScript.Arguments.Count <> 2 then
-   WScript.StdErr.WriteLine("Usage: " & WScript.ScriptName & " " & _
-                            "<label> <new letter>")
-   WScript.Quit(1)
+    WScript.StdErr.WriteLine("Usage: " & WScript.ScriptName & " " & _
+                             "<label> <new letter>")
+    WScript.Quit(1)
 end if
 
 label = WScript.Arguments(0)
