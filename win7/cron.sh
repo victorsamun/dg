@@ -35,8 +35,8 @@ if [[ ! -f "$BASE_CONFIG" ]] || [[ -f "$SNAPSHOT_CONFIG" ]]; then usage "$0"; fi
 case "$ACTION" in
   new)
     silent locked "$BASE_CONFIG" \
-        python "$BASE/prepare.py" \
-            -S "$BASE/sysprep.xml" -C "$BASE/SetupComplete.cmd" \
+        python "$BASE/prepare.py" -d 0 \
+            -S "$BASE/sysprep.xml" -ss "$BASE/SetupComplete.cmd" \
             -l /var/lib/cow/windows7/pkgs -p /tmp/windows7 \
             "$BASE_CONFIG" "$SNAPSHOT_CONFIG"
   ;;
