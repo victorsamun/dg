@@ -149,8 +149,8 @@ def main(raw_args):
                 parser.error('-p must be specified in order to add join')
             with open(args.p) as pwdfile:
                 set_auto_join(tree, args.j, args.u, pwdfile.read().strip())
-        if args.p:
-            set_profiles_directory(tree, args.p)
+        if args.P:
+            set_profiles_directory(tree, args.P)
         for user, pwd in map(lambda spec: spec.split(':', 1), args.a):
             add_local_admin(tree, user, pwd)
         add_specialize_commands(tree, args.c)
