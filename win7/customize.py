@@ -8,13 +8,13 @@ import sys
 def ns(name): return '{{urn:schemas-microsoft-com:unattend}}{}'.format(name)
 
 
-WCM_NS = 'http://schemas.microsoft.com/WMIConfig/2002/State'
+def wcm_add(elem, name):
+    ns = 'http://schemas.microsoft.com/WMIConfig/2002/State'
+    def wcm_ns(name): return '{{{}}}{}'.format(ns, name)
 
-def wcm_ns(name):
-    return '{{{}}}{}'.format(WCM_NS, name)
-
-def wcm_map():
-    return {'wcm': WCM_NS}
+    sub_elem = etree.SubElement(elem, name, nsmap={'wcm': ns})
+    sub_elem.attrib[wcm_ns('action')] = 'add'
+    return sub_elem
 
 
 def get_or_add(element, expr, add):
@@ -80,15 +80,30 @@ def set_auto_join(tree, domain, username, password):
 def add_local_admin(tree, username, password):
     accounts = get(tree, 'oobeSystem', 'Microsoft-Windows-Shell-Setup',
                    'UserAccounts')
-    local_users = get_prop(accounts, 'LocalAccounts')
-    user = etree.SubElement(local_users, 'LocalAccount', nsmap=wcm_map())
-    user.attrib[wcm_ns('action')] = 'add'
+    user = wcm_add(get_prop(accounts, 'LocalAccounts'), 'LocalAccount')
     get_prop(user, 'Description').text = username
     get_prop(user, 'DisplayName').text = username
     get_prop(user, 'Group').text = 'Administrators'
     get_prop(user, 'Name').text = username
     get_prop(get_prop(user, 'Password'), 'Value').text = password
     get_prop(get_prop(user, 'Password'), 'PlainText').text = 'true'
+
+
+def add_specialize_commands(tree, commands):
+    if len(commands) > 0:
+        run_synchro = get(tree, 'specialize', 'Microsoft-Windows-Deployment',
+                          'RunSynchronous')
+        for index, cmdline in enumerate(commands):
+            cmd = wcm_add(run_synchro, 'RunSynchronousCommand')
+            get_prop(cmd, 'Description').text = cmdline
+            get_prop(cmd, 'Order').text = str(index + 1)
+            get_prop(cmd, 'Path').text = cmdline
+
+
+def set_profiles_directory(tree, directory):
+    locations = get(tree, 'oobeSystem', 'Microsoft-Windows-Shell-Setup',
+                    'FolderLocations')
+    get_prop(locations, 'ProfilesDirectory').text = directory
 
 
 @contextmanager
@@ -119,6 +134,10 @@ def main(raw_args):
         '-p', metavar='FILE', help='Password file for domain join')
     parser.add_argument('-a', metavar='USER:PASS', help='Add local admin user',
                         default=[], action='append')
+    parser.add_argument(
+        '-c', metavar='COMMAND', help='Commands to run on specialize stage',
+        default=[], action='append')
+    parser.add_argument('-P', metavar='DIRECTORY', help='Profiles directory')
 
     args = parser.parse_args(raw_args)
 
@@ -130,8 +149,11 @@ def main(raw_args):
                 parser.error('-p must be specified in order to add join')
             with open(args.p) as pwdfile:
                 set_auto_join(tree, args.j, args.u, pwdfile.read().strip())
+        if args.p:
+            set_profiles_directory(tree, args.p)
         for user, pwd in map(lambda spec: spec.split(':', 1), args.a):
             add_local_admin(tree, user, pwd)
+        add_specialize_commands(tree, args.c)
     return 0
 
 
