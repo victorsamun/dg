@@ -53,18 +53,19 @@ def get_snapshot_path(disk):
     return '{}-at-{}'.format(basename, timestamp)
 
 
-def write_snapshot_config(config, name, disk, output, should_exist=False):
+def write_snapshot_config(config, name, disks, output, should_exist=False):
     if not should_exist:
         assert not os.path.isfile(output), '{} already exists'.format(output)
     with open(output, 'w') as outfile:
+        outfile.write('name="{}"\n'.format(name))
         for key in ['builder', 'memory', 'boot', 'vif', 'cpus', 'vcpus',
                     'localtime', 'vncconsole', 'vnc', 'vnclisten']:
             if key in config:
                 value = config[key]
                 fmt = '{}="{}"\n' if type(value) is str else '{}={}\n'
                 outfile.write(fmt.format(key, config[key]))
-        outfile.write('disk=["{}"]\n'.format(disk))
-        outfile.write('name="{}"\n'.format(name))
+        disk_spec = ','.join('"{}"'.format(disk) for disk in disks)
+        outfile.write('disk=[{}]\n'.format(disk_spec))
 
 
 def wait_for_condition(total, step, check, step_msg, fail_msg):
@@ -136,12 +137,15 @@ def wait_for_ssh(client, total, step=datetime.timedelta(seconds=10)):
              client.login, client.host))
 
 
-def copy_setup_complete(client, setup_complete):
-    logging.info('copying SetupComplete.cmd from {}'.format(setup_complete))
-    dest_dir = '/cygdrive/c/Windows/Setup/Scripts'
-    dest_file = 'SetupComplete.cmd'
-    client.ssh('mkdir', '-p', dest_dir)
-    client.scp(setup_complete, '{}/{}'.format(dest_dir, dest_file))
+def copy_setup_scripts(client, scripts):
+    if len(scripts) > 0:
+        dest_dir = '/cygdrive/c/Windows/Setup/Scripts'
+        client.ssh('mkdir', '-p', dest_dir)
+
+        for script in scripts:
+            logging.info('copying {} to {}'.format(script, dest_dir))
+            dest_file = os.path.basename(script)
+            client.scp(script, '{}/{}'.format(dest_dir, dest_file))
 
 
 def start_sysprep(client, sysprep_xml):
@@ -176,6 +180,9 @@ def main(raw_args):
     parser.add_argument('SNAP_CONFIG',
         help='path to snapshot config file for prepared VM')
     parser.add_argument(
+        '-d', metavar='INDEX', type=int, default=0,
+        help='Index of VM disk in config file to make snapshot of')
+    parser.add_argument(
         '-H', metavar='HOST', help='Machine hostname for SSH connections')
     parser.add_argument(
         '-u', metavar='LOGIN', help='Username for SSH connections',
@@ -187,8 +194,8 @@ def main(raw_args):
         '-S', metavar='SYSPREP.XML',
         help='Sysprep unattended file location', required=True)
     parser.add_argument(
-        '-C', metavar='SETUPCOMPLETE.CMD',
-        help='SetupComplete.cmd file location', required=True)
+        '-ss', metavar='SCRIPT', default=[], action='append',
+        help='setup scripts to copy to Windows\Setup\Scripts')
     parser.add_argument(
         '-l', metavar='PKGS', help='Filename for installed software list',
         required=True)
@@ -206,20 +213,15 @@ def main(raw_args):
     config = parse_xl_config(args.CONFIG)
     vm_name = config['name']
     disks = get_disks(config)
-    if len(disks) != 1:
-        logging.error('{} should have exactly one disk, got {}'.format(
-                      args.CONFIG, len(disks)))
-        return 2
-
-    disk = disks[0]
+    disk = disks[args.d]
     disk_path = disk.split(',')[0]
     snapshot_path = get_snapshot_path(disk)
     logging.info('snapshot path is {}'.format(snapshot_path))
+    disks[args.d] = get_snapshot_disk_spec(disk, snapshot_path)
+
     snapshot_name = os.path.basename(snapshot_path)
     snapshot_vm_name = '{}-snap'.format(vm_name)
-    write_snapshot_config(config, snapshot_vm_name,
-                          get_snapshot_disk_spec(disk, snapshot_path),
-                          args.SNAP_CONFIG)
+    write_snapshot_config(config, snapshot_vm_name, disks, args.SNAP_CONFIG)
     try:
         host = args.H if args.H is not None else vm_name
         client = SSHClient(host, args.u)
@@ -240,7 +242,7 @@ def main(raw_args):
         subprocess.check_call(['xl', 'create', args.SNAP_CONFIG])
         assert wait_for_ssh(client, Timeouts.BIG)
 
-        copy_setup_complete(client, args.C)
+        copy_setup_scripts(client, args.ss)
         start_sysprep(client, args.S)
         assert wait_for_lv_to_free(snapshot_path, Timeouts.BIG)
 
@@ -256,9 +258,7 @@ def main(raw_args):
         if args.t:
             test_vm_name = '{}-test'.format(vm_name)
             logging.warning('starting vm "{}" for test'.format(test_vm_name))
-            write_snapshot_config(config, test_vm_name,
-                                  get_snapshot_disk_spec(disk, snapshot_path),
-                                  args.SNAP_CONFIG,
+            write_snapshot_config(config, test_vm_name, disks, args.SNAP_CONFIG,
                                   should_exist=True)
             subprocess.check_call(['xl', 'create', args.SNAP_CONFIG])
         else:
