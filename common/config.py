@@ -164,3 +164,11 @@ class WithWindows7Partition(stage.Stage):
 
     def get_win7_partition(self):
         return '/dev/disk/by-partlabel/{}'.format(self.win7_partition)
+
+@Option.requires(
+    '-wd', help='Set windows partition volume path by FS label',
+    metavar='LABEL:LETTER', default=None)
+class WithWindowsDataPartition(stage.Stage):
+    def parse(self, args):
+        self.win_data_label, self.win_data_letter = (
+            args.wd.split(':', 1) if args.wd is not None else [None, None])

@@ -1,3 +1,5 @@
+import subprocess
+
 from common import config, stage
 from util import proc, win
 import os
@@ -34,14 +36,34 @@ class StoreCOWConfig(config.WithSSHCredentials, RunCommands):
 
 
 class CustomizeWindowsSetup(
-        config.WithSSHCredentials, config.WithWindows7Partition, RunCommands):
+        config.WithSSHCredentials, config.WithWindows7Partition,
+        config.WithWindowsDataPartition, RunCommands):
     'customize SSH credentials and sysprep config in Windows root partition'
 
+    def set_mp_binary(self):
+        return 'set-mountpoint.exe'
+
+    def set_mp_location(self):
+        return os.path.join(
+            os.path.dirname(__file__), os.path.pardir, 'win7', 'mp')
+
+    def setup(self):
+        if self.win_data_label is not None:
+            subprocess.check_call(
+                ['/usr/bin/make', '-C', self.set_mp_location()])
+
     def get_files_to_copy(self, host):
-        return [
+        files = [
             (os.path.join(os.path.dirname(__file__), os.path.pardir,
              'win7', 'customize.py'), '/tmp/customize.py')
         ]
+
+        if self.win_data_label is not None:
+            files.append(
+                (os.path.join(self.set_mp_location(), self.set_mp_binary()),
+                 '/tmp/{}'.format(self.set_mp_binary())))
+
+        return files
 
     def get_commands(self, host):
         mountpoint = '/mnt'
@@ -51,10 +73,16 @@ class CustomizeWindowsSetup(
         if 'userqwer' in host.props['services']:
             args += ['-a', 'user:qwer']
         sysprep_xml = '/mnt/Windows/Panther/unattend.xml'
+        if self.win_data_label is not None:
+            args += ['-c', r'"{} {} {}:\\"'.format(
+                r'C:\\Windows\\Setup\\Scripts\\set-mountpoint.exe',
+                self.win_data_label, self.win_data_letter)]
         return [
             ['mount', self.get_win7_partition(), mountpoint],
             ['cp /etc/ssh/ssh_host_*_key{{,.pub}} {}{}'.format(
                 mountpoint, prefix)],
             ['python', '/tmp/customize.py'] + args + [sysprep_xml, sysprep_xml],
-            ['umount', mountpoint],
+        ] + ([['cp', '/tmp/{}'.format(self.set_mp_binary()),
+               '/mnt/Windows/Setup/Scripts']] if self.win_data_label else []
+        ) + [['umount', mountpoint]
         ]
