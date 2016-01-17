@@ -1,5 +1,5 @@
 METHOD=simple
-DG_HOSTS=(znick-pc)
+DG_HOSTS=(hewlett)
 LOCAL_ADDRESS=172.16.10.228
 
 part() {
