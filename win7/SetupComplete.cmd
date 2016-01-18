@@ -7,11 +7,14 @@ net user Administrator /active:yes
 net start sshd
 
 set scripts=C:\Windows\Setup\Scripts
-set profiles=W:\Users\profiles.reg
 
-if exist "%profiles%" (
-    reg import "%profiles%"
-)
+rem set profiles=
+if "%profiles%" == "" goto :EOF
+
+for %%f in (%profiles%) do set profiles_dir=%%~dpf
+if not exist "%profiles_dir%" goto :EOF
+
+if exist "%profiles%" reg import "%profiles%"
 
 schtasks /ru "" /create /f /tn "profiles" /sc onlogon /tr ^
     "%scripts%\hidden.vbs %scripts%\export.cmd %profiles%"
