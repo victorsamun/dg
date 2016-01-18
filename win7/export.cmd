@@ -1,24 +1,30 @@
 @echo off
 
-set HS=HKLM\SOFTWARE
-set NTVER=Microsoft\Windows NT\CurrentVersion
-set TMPFILE=%~dp0%current.reg
-set ALLFILE=%~dp0%profiles.reg
+if "%1" == "" (
+    set outdir=%~dp0
+) else (
+    set outdir=%1
+)
 
-echo. > "%ALLFILE%"
+set hs=HKLM\SOFTWARE
+set ntver=Microsoft\Windows NT\CurrentVersion
+set tmpfile=%TEMP%\export.reg
+set allfile=%outdir%profiles.reg
 
-call :exp "%HS%\Microsoft\IdentityStore"         "%TMPFILE%" "%ALLFILE%"
-call :exp "%HS%\%NTVER%\PolicyGuid"              "%TMPFILE%" "%ALLFILE%"
-call :exp "%HS%\%NTVER%\ProfileGuid"             "%TMPFILE%" "%ALLFILE%"
-call :exp "%HS%\%NTVER%\ProfileList"             "%TMPFILE%" "%ALLFILE%"
-call :exp "%HS%\Wow6432Node\%NTVER%\ProfileList" "%TMPFILE%" "%ALLFILE%"
+type nul > "%allfile%"
 
-del "%TMPFILE%"
+call :exp "%tmpfile%" "%allfile%" "%hs%\Microsoft\IdentityStore"
+call :exp "%tmpfile%" "%allfile%" "%hs%\%ntver%\PolicyGuid"
+call :exp "%tmpfile%" "%allfile%" "%hs%\%ntver%\ProfileGuid"
+call :exp "%tmpfile%" "%allfile%" "%hs%\%ntver%\ProfileList"
+call :exp "%tmpfile%" "%allfile%" "%hs%\Wow6432Node\%ntver%\ProfileList"
+
+del "%tmpfile%"
 goto :EOF
 
 :exp
-reg query %1 >nul 2>&1
+reg query %3 >nul 2>&1
 if NOT ERRORLEVEL 1 (
-    reg export %1 %2 /y >nul
-    type %2 >> %3
+    reg export %3 %1 /y >nul
+    type %1 >> %2
 )
