@@ -3,6 +3,8 @@
 if "%1" == "" (
     echo usage: %0 ^<output.reg^> 1>&2
     exit /b 1
+) else (
+    set output=%1
 )
 
 set hs=HKLM\SOFTWARE
