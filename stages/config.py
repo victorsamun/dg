@@ -60,8 +60,9 @@ class CustomizeWindowsSetup(
             args += ['-c', r'"{} {} {}:\\"'.format(
                 r'C:\\Windows\\Setup\\Scripts\\set-mountpoint.exe',
                 self.win_data_label, self.win_data_letter)]
-            args += ['-c', r'"cmd /c mkdir {}:\\Users"'.format(
-                self.win_data_letter)]
+            home = r'{}:\\Users'.format(self.win_data_letter)
+            args += ['-c', r'"cmd /c mkdir {}"'.format(home)]
+            args += ['-P', home]
         cmds = [
             ['mount', self.get_win7_partition(), mountpoint],
             ['cp /etc/ssh/ssh_host_*_key{{,.pub}} {}{}'.format(
