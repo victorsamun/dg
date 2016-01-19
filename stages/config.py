@@ -40,28 +40,11 @@ class CustomizeWindowsSetup(
         config.WithWindowsDataPartition, RunCommands):
     'customize SSH credentials and sysprep config in Windows root partition'
 
-    def set_mp_binary(self):
-        return 'set-mountpoint.exe'
-
-    def set_mp_location(self):
-        return os.path.join(
-            os.path.dirname(__file__), os.path.pardir, 'win7', 'mp')
-
-    def setup(self):
-        if self.win_data_label is not None:
-            subprocess.check_call(
-                ['/usr/bin/make', '-C', self.set_mp_location()])
-
     def get_files_to_copy(self, host):
         files = [
             (os.path.join(os.path.dirname(__file__), os.path.pardir,
              'win7', 'customize.py'), '/tmp/customize.py')
         ]
-
-        if self.win_data_label is not None:
-            files.append(
-                (os.path.join(self.set_mp_location(), self.set_mp_binary()),
-                 '/tmp/{}'.format(self.set_mp_binary())))
 
         return files
 
@@ -72,17 +55,25 @@ class CustomizeWindowsSetup(
                 '-j', 'runc.urgu.org', '-p', '/etc/smb.pwd']
         if 'userqwer' in host.props['services']:
             args += ['-a', 'user:qwer']
-        sysprep_xml = '/mnt/Windows/Panther/unattend.xml'
+        sysprep_xml = '{}/Windows/Panther/unattend.xml'.format(mountpoint)
         if self.win_data_label is not None:
             args += ['-c', r'"{} {} {}:\\"'.format(
                 r'C:\\Windows\\Setup\\Scripts\\set-mountpoint.exe',
                 self.win_data_label, self.win_data_letter)]
-        return [
+            args += ['-c', r'"cmd /c mkdir {}:\\Users"'.format(
+                self.win_data_letter)]
+        cmds = [
             ['mount', self.get_win7_partition(), mountpoint],
             ['cp /etc/ssh/ssh_host_*_key{{,.pub}} {}{}'.format(
                 mountpoint, prefix)],
             ['python', '/tmp/customize.py'] + args + [sysprep_xml, sysprep_xml],
-        ] + ([['cp', '/tmp/{}'.format(self.set_mp_binary()),
-               '/mnt/Windows/Setup/Scripts']] if self.win_data_label else []
-        ) + [['umount', mountpoint]
         ]
+        if self.win_data_label is not None:
+            cmds.append([
+                'sed', '-i',
+                '"s/rem set profiles=/set profiles=' +
+                r'{}:\\\\Users\\\\profiles.reg/"'.format(self.win_data_letter),
+                '{}/Windows/Setup/Scripts/SetupComplete.cmd'.format(mountpoint)
+            ])
+        cmds.append(['umount', mountpoint])
+        return cmds
