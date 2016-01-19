@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
+set -e
+
 BASE=$(dirname "$0")
+PKGS=/var/lib/cow/windows7/pkgs
+PTR=/tmp/windows7
 
 locked() {
   lockfile=$1; shift
@@ -24,6 +28,16 @@ usage() {
   exit 1
 }
 
+new() {
+  local base_config=$1 snapshot_config=$2
+  silent locked "$base_config" make -C "$BASE/mp"
+  silent locked "$base_config" python "$BASE/prepare.py" \
+    -d 0 -S "$BASE/sysprep.xml" \
+    -ss "$BASE/SetupComplete.cmd" -ss "$BASE/mp/set-mountpoint.exe" \
+    -ss "$BASE/export.cmd" -ss "$BASE/hidden.vbs" \
+    -l "$PKGS" -p "$PTR" "$base_config" "$snapshot_config"
+}
+
 if [[ "$#" -ne 3 ]]; then usage "$0"; fi
 
 ACTION=$1
@@ -34,11 +48,7 @@ if [[ ! -f "$BASE_CONFIG" ]] || [[ -f "$SNAPSHOT_CONFIG" ]]; then usage "$0"; fi
 
 case "$ACTION" in
   new)
-    silent locked "$BASE_CONFIG" \
-        python "$BASE/prepare.py" -d 0 \
-            -S "$BASE/sysprep.xml" -ss "$BASE/SetupComplete.cmd" \
-            -l /var/lib/cow/windows7/pkgs -p /tmp/windows7 \
-            "$BASE_CONFIG" "$SNAPSHOT_CONFIG"
+    new "$BASE_CONFIG" "$SNAPSHOT_CONFIG"
   ;;
   cleanup)
     silent locked "$BASE_CONFIG" "$BASE/clean.sh"
@@ -47,3 +57,5 @@ case "$ACTION" in
     usage "$0"
   ;;
 esac
+
+# vim: ts=2 sw=2
