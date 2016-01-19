@@ -25,5 +25,5 @@ class SimpleMethod(method.Method):
         ssh.WaitUntilBootedIntoNonDefault(*ssh.Timeouts.BIG),
         boot.ResetBoot(),
         ssh.RebootNonDefaultOS(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.NORMAL),
+        ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.BIG),
     ]
