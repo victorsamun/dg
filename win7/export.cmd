@@ -20,7 +20,7 @@ call :exp "%tmpfile%" "%output%" "%hs%\%ntver%\ProfileList"
 call :exp "%tmpfile%" "%output%" "%hs%\Wow6432Node\%ntver%\ProfileList"
 
 del "%tmpfile%"
-goto :EOF
+exit /b
 
 :exp
 reg query %3 >nul 2>&1

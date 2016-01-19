@@ -6,15 +6,15 @@ reg add ^
 net user Administrator /active:yes
 net start sshd
 
-set scripts=C:\Windows\Setup\Scripts
-
+rem the next line is to ease preprocessing, do not remove
 rem set profiles=
-if "%profiles%" == "" goto :EOF
+if "%profiles%" == "" exit /b
 
 for %%f in (%profiles%) do set profiles_dir=%%~dpf
-if not exist "%profiles_dir%" goto :EOF
+if not exist "%profiles_dir%" exit /b
 
 if exist "%profiles%" reg import "%profiles%"
 
+set scripts=%~dp0
 schtasks /ru "" /create /f /tn "profiles" /sc onlogon /tr ^
-    "%scripts%\hidden.vbs %scripts%\export.cmd %profiles%"
+    "%scripts%hidden.vbs %scripts%export.cmd %profiles%"
