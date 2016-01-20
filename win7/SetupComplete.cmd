@@ -17,4 +17,4 @@ if exist "%profiles%" reg import "%profiles%"
 
 set scripts=%~dp0
 schtasks /ru "" /create /f /tn "profiles" /sc onlogon /tr ^
-    "%scripts%hidden.vbs %scripts%export.cmd %profiles%"
+  "%scripts%hidden.vbs %scripts%export.cmd %profiles%"
