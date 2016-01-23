@@ -6,7 +6,7 @@ reg add ^
 net user Administrator /active:yes
 net start sshd
 
-if exist C:\drivers\setup.cmd C:\drivers\setup.cmd
+if exist C:\drivers\setup.cmd start /b C:\drivers\setup.cmd
 
 rem the next line is to ease preprocessing, do not remove
 rem set profiles=
