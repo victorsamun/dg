@@ -18,7 +18,8 @@ Command = collections.namedtuple('Command', ('login', 'command'))
 
 REBOOT_MARKER = '/tmp/rebooting'
 
-CHECK_WIN  = 'uname | grep -q NT'
+CHECK_WIN  = ('uname | grep -q NT && '
+              '! test -f /cygdrive/c/Windows/Setup/Scripts/inprogress')
 REBOOT_WIN = 'shutdown /r /t 0'
 
 CHECK_LINUX     = '! test -f {}'.format(REBOOT_MARKER)

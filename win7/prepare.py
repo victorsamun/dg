@@ -138,14 +138,14 @@ def wait_for_ssh(client, total, step=datetime.timedelta(seconds=10)):
 
 
 def copy_setup_scripts(client, scripts):
-    if len(scripts) > 0:
-        dest_dir = '/cygdrive/c/Windows/Setup/Scripts'
-        client.ssh('mkdir', '-p', dest_dir)
-
-        for script in scripts:
-            logging.info('copying {} to {}'.format(script, dest_dir))
-            dest_file = os.path.basename(script)
-            client.scp(script, '{}/{}'.format(dest_dir, dest_file))
+    dest_dir = '/cygdrive/c/Windows/Setup/Scripts'
+    client.ssh('mkdir', '-p', dest_dir)
+    logging.info('creating marker file for running setup')
+    client.ssh('touch', '{}/inprogress'.format(dest_dir))
+    for script in scripts:
+        logging.info('copying {} to {}'.format(script, dest_dir))
+        dest_file = os.path.basename(script)
+        client.scp(script, '{}/{}'.format(dest_dir, dest_file))
 
 
 def start_sysprep(client, sysprep_xml):
