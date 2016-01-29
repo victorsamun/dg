@@ -27,7 +27,6 @@ exit /b
 exit /b
 
 :finish_setup
-  del C:\Windows\Setup\Scripts\inprogress
   net user Administrator /active:yes
   net start sshd
 exit /b
