@@ -8,8 +8,8 @@ from common import config, stage
 from util import win
 
 class Timeouts:
-    TINY   = (datetime.timedelta(seconds=1),  datetime.timedelta(seconds=10))
-    NORMAL = (datetime.timedelta(minutes=1),  datetime.timedelta(minutes=15))
+    TINY   = (datetime.timedelta(seconds=4),  datetime.timedelta(seconds=20))
+    NORMAL = (datetime.timedelta(minutes=1),  datetime.timedelta(minutes=10))
     BIG    = (datetime.timedelta(minutes=1),  datetime.timedelta(minutes=30))
 
 
