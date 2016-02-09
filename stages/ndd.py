@@ -9,7 +9,8 @@ class RunNDDViaSlurm(config.WithLocalAddress, config.WithNDDArgs, stage.Stage):
             cmdline = ['python', '/usr/local/bin/ndd_slurm.py']
             cmdline.extend(['-s', self.local_addr, '-i', src, '-o', dst])
 
-            for host in sorted(state.active_hosts, key=lambda host: host.sname):
+            for host in sorted(state.active_hosts,
+                               key=lambda host: host.props.get('switch')):
                 cmdline.extend(['-d', str(host.sname)])
 
             rv, _ = proc.run_process(cmdline, state.log)
