@@ -3,7 +3,7 @@ MAILTO=deployment@urgu.org
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
 
 16 22 * * * root /root/dg/cron.sh /root/dg/conf/test.sh
-30 22 * * * root /root/dg/cron.sh /root/dg/conf/hogs.sh
- 0 23 * * * root /root/dg/cron.sh /root/dg/conf/pcs.sh
-50 23 * * * root /root/dg/cron.sh /root/dg/conf/small.sh
- 0  1 * * * root /root/dg/cron.sh /root/dg/conf/single.sh
+ 0  1 * * * root /root/dg/cron.sh /root/dg/conf/hogs.sh
+30  1 * * * root /root/dg/cron.sh /root/dg/conf/pcs.sh
+10  2 * * * root /root/dg/cron.sh /root/dg/conf/small.sh
+ 0  3 * * * root /root/dg/cron.sh /root/dg/conf/single.sh
