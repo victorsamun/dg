@@ -54,7 +54,7 @@ class CustomizeWindowsSetup(
         args = ['-H', win.get_hostname(host),
                 '-j', 'runc.urgu.org', '-p', '/etc/smb.pwd']
         if 'userqwer' in host.props['services']:
-            args += ['-a', 'user:qwer']
+            args += ['-a', 'user:qwer', '-A', 'user:qwer']
         sysprep_xml = '{}/Windows/Panther/unattend.xml'.format(mountpoint)
         if self.win_data_label is not None:
             args += ['-c', r'"{} {} {}:\\"'.format(
