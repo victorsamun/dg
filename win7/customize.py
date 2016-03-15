@@ -89,6 +89,15 @@ def add_local_admin(tree, username, password):
     get_prop(get_prop(user, 'Password'), 'PlainText').text = 'true'
 
 
+def add_auto_login(tree, username, password):
+    auto_logon = get(tree, 'oobeSystem', 'Microsoft-Windows-Shell-Setup',
+                     'AutoLogon')
+    get_prop(auto_logon, 'Enabled').text = 'true'
+    get_prop(auto_logon, 'Username').text = username
+    get_prop(get_prop(auto_logon, 'Password'), 'Value').text = password
+    get_prop(get_prop(auto_logon, 'Password'), 'PlainText').text = 'true'
+
+
 def add_specialize_commands(tree, commands):
     if len(commands) > 0:
         run_synchro = get(tree, 'specialize', 'Microsoft-Windows-Deployment',
@@ -135,6 +144,9 @@ def main(raw_args):
     parser.add_argument('-a', metavar='USER:PASS', help='Add local admin user',
                         default=[], action='append')
     parser.add_argument(
+        '-A', metavar='USER:PASS', help='Auto-login specified user')
+
+    parser.add_argument(
         '-c', metavar='COMMAND', help='Commands to run on specialize stage',
         default=[], action='append')
     parser.add_argument('-P', metavar='DIRECTORY', help='Profiles directory')
@@ -153,6 +165,8 @@ def main(raw_args):
             set_profiles_directory(tree, args.P)
         for user, pwd in map(lambda spec: spec.split(':', 1), args.a):
             add_local_admin(tree, user, pwd)
+        if args.A:
+            add_auto_login(tree, *args.A.split(':', 1))
         add_specialize_commands(tree, args.c)
     return 0
 
