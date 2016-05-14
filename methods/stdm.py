@@ -2,7 +2,7 @@ import datetime
 
 from common import method
 from stages import (
-    amt, amtredird, basic, boot, config, disk, ndd, network, slurm, ssh, stdm
+    amt, amtredird, basic, boot, config, disk, ndd, network, ssh, stdm
 )
 
 class StdMMethod(method.Method):
@@ -25,8 +25,7 @@ class StdMMethod(method.Method):
         disk.ConfigureDisk(),
         config.StoreCOWConfig(),
         network.EnsureNetworkSpeed(),
-        slurm.WaitForSlurmAvailable(*slurm.Timeouts.NORMAL),
-        ndd.RunNDDViaSlurm(),
+        ndd.RunNDD(),
         config.CustomizeWindowsSetup(),
         boot.SetBootIntoNonDefault(),
         ssh.RebootLinux(*ssh.Timeouts.TINY),
@@ -35,4 +34,3 @@ class StdMMethod(method.Method):
         ssh.RebootNonDefaultOS(*ssh.Timeouts.TINY),
         ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.BIG),
     ]
-
