@@ -1,7 +1,7 @@
 import datetime
 
 from common import method
-from stages import basic, boot, config, ndd, network, slurm, ssh
+from stages import basic, boot, config, ndd, network, ssh
 
 class SimpleMethod(method.Method):
     'method for deploying pre-configured machines'
@@ -17,8 +17,7 @@ class SimpleMethod(method.Method):
         boot.ResetBoot(),
         config.StoreCOWConfig(),
         network.EnsureNetworkSpeed(),
-        slurm.WaitForSlurmAvailable(*slurm.Timeouts.NORMAL),
-        ndd.RunNDDViaSlurm(),
+        ndd.RunNDD(),
         config.CustomizeWindowsSetup(),
         boot.SetBootIntoNonDefault(),
         ssh.RebootLinux(*ssh.Timeouts.TINY),
