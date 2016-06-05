@@ -3,8 +3,11 @@ from util import hosts
 class Method(object):
     stages = []
 
-    def __init__(self):
-        self.stages = self.__class__.stages
+    def __init__(self, stages):
+        self.stages = (
+            self.__class__.stages if stages is None
+            else [self.__class__.stages[index] for index in map(int, stages)]
+        )
 
     def parse(self, args):
         for stage in self.stages:

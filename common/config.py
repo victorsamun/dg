@@ -1,15 +1,23 @@
 import argparse
+import sys
 
 import stage, state
 from util import amt_creds, proc
 
 def execute_with(raw_args, methods):
-    method_cls = Option.choose_method(methods, raw_args)
+    method_cls, stages = Option.choose_method_and_stages(methods, raw_args)
 
-    parser = Option.get_method_parser(method_cls, raw_args)
+    if stages == []:
+        print >> sys.stderr, 'Available stages for "{}" method:'.format(
+            method_cls.name)
+        for index, stage in enumerate(method_cls.stages):
+            print >> sys.stderr, '{:-3d}: {}'.format(index, stage)
+        return 0
+
+    method = method_cls(stages)
+    parser = Option.get_method_parser(method, raw_args)
     method_args = parser.parse_args(raw_args)
 
-    method = method_cls()
     method.parse(method_args)
     the_state = state.State(parser, method_args)
 
@@ -28,30 +36,34 @@ class Option(object):
         return rv
 
     @staticmethod
-    def add_common_params(parser, methods):
+    def add_common_params(parser, method_classes):
         state.State.add_params(parser)
         parser.add_argument(
-            '-m', choices=[method.name for method in methods],
+            '-m', choices=[method.name for method in method_classes],
             help='Deploy method', required=True)
+        parser.add_argument(
+            '-s', nargs='*', default=None, metavar='NUM',
+            help='Explicitly choose method stages by index. '
+                 'Use empty value to list')
 
     @staticmethod
-    def choose_method(methods, raw_args):
-        names = dict((m.name, m) for m in methods)
+    def choose_method_and_stages(method_classes, raw_args):
+        names = dict((m.name, m) for m in method_classes)
         description = 'Deploy some machines. Available methods are:\n'
-        for method in methods:
+        for method in method_classes:
             description += '  {:<8} {}\n'.format(method.name, method.__doc__)
         parser = argparse.ArgumentParser(
             description=description,
             formatter_class=argparse.RawTextHelpFormatter)
-        Option.add_common_params(parser, methods)
+        Option.add_common_params(parser, method_classes)
         Option.add_all(parser)
         args = parser.parse_args(raw_args)
-        return names[args.m]
+        return names[args.m], args.s
 
     @staticmethod
     def get_method_parser(method, raw_args):
         parser = argparse.ArgumentParser(description=method.__doc__)
-        Option.add_common_params(parser, [method])
+        Option.add_common_params(parser, [type(method)])
         Option.add_required(parser, method)
         return parser
 
