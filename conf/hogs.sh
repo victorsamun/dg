@@ -1,5 +1,5 @@
 METHOD=amt
-DG_GROUPS=(hogs)
+DG_GROUPS=(bhogs)
 LOCAL_ADDRESS=172.16.12.101
 AMTPASSWD=/root/dg/amtpasswd
 

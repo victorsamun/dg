@@ -1,4 +1,5 @@
 METHOD=stdm
+DG_HOSTS=(uzer-pc)
 DG_GROUPS=(shogs)
 LOCAL_ADDRESS=172.16.12.101
 AMTPASSWD=/root/dg/amtpasswd
