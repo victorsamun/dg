@@ -5,6 +5,7 @@ from stages import (
     amt, amtredird, basic, boot, config, disk, ndd, network, ssh
 )
 
+
 class AMTMethod(method.Method):
     'method for deploying AMT-capable hosts'
     name = 'amt'
@@ -27,10 +28,13 @@ class AMTMethod(method.Method):
         network.EnsureNetworkSpeed(),
         ndd.RunNDD(),
         config.CustomizeWindowsSetup(),
-        boot.SetBootIntoNonDefault(),
-        ssh.RebootLinux(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoNonDefault(*ssh.Timeouts.BIG),
+        boot.SetBootIntoLocalWindows(),
+        ssh.RebootHost(*ssh.Timeouts.TINY),
+        ssh.WaitUntilBootedIntoLocalWindows(*ssh.Timeouts.BIG),
+        boot.SetBootIntoLocalLinux(),
+        ssh.RebootHost(*ssh.Timeouts.TINY),
+        ssh.WaitUntilBootedIntoLocalLinux(*ssh.Timeouts.NORMAL),
         boot.ResetBoot(),
-        ssh.RebootNonDefaultOS(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.BIG),
+        ssh.MaybeRebootLocalLinux(*ssh.Timeouts.TINY),
+        ssh.CheckIsAccessible(*ssh.Timeouts.NORMAL),
     ]

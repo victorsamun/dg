@@ -41,16 +41,19 @@ class ExecuteRemoteCommands(config.WithSSHCredentials, stage.ParallelStage):
         return rv
 
     def run_single(self, host):
+        commands = self.get_commands(host)
+        if not commands:
+            return
+
         start = datetime.datetime.now()
         while datetime.datetime.now() - start < self.total_timeout:
-            for command in self.get_commands(host):
+            for command in commands:
                 if self.check_result(host, command) == 0:
                     return
-            else:
-                host.state.log.info(
-                    'condition not met yet, sleeping for {} seconds'.format(
-                        self.step_timeout.seconds))
-                time.sleep(self.step_timeout.seconds)
+            host.state.log.info(
+                'condition not met yet, sleeping for {} seconds'.format(
+                    self.step_timeout.seconds))
+            time.sleep(self.step_timeout.seconds)
         self.fail('failed to execute remote commands')
 
 
@@ -82,29 +85,26 @@ class RebootHost(ExecuteRemoteCommands):
                 [Command(self.ssh_login_linux, [REBOOT_LINUX])])
 
 
-class RebootLinux(ExecuteRemoteCommands):
-    'reboot Linux host with SSH'
+class MaybeRebootLocalLinux(ExecuteRemoteCommands):
+    'reboot host booted into local Linux if it is not default boot'
 
     def get_commands(self, host):
-        return [Command(self.ssh_login_linux, [REBOOT_LINUX])]
+        return ([Command(self.ssh_login_linux, [REBOOT_LINUX])]
+                if boot.BootsToWindowsByDefault(host) else [])
 
 
-class WaitUntilBootedIntoDefault(ExecuteRemoteCommands):
-    'wait until host has booted into default OS'
-
-    def get_commands(self, host):
-        return (get_win_commands(host, self.ssh_login_windows, CHECK_WIN)
-                if boot.BootsToWindowsByDefault(host)
-                else [Command(self.ssh_login_linux, [CHECK_LINUX])])
-
-
-class WaitUntilBootedIntoNonDefault(ExecuteRemoteCommands):
-    'wait until host has booted into non-default OS'
+class WaitUntilBootedIntoLocalWindows(ExecuteRemoteCommands):
+    'wait until host has booted into local Windows'
 
     def get_commands(self, host):
-        return ([Command(self.ssh_login_linux, [CHECK_LINUX])]
-                if boot.BootsToWindowsByDefault(host)
-                else get_win_commands(host, self.ssh_login_windows, CHECK_WIN))
+        return get_win_commands(host, self.ssh_login_windows, CHECK_WIN)
+
+
+class WaitUntilBootedIntoLocalLinux(ExecuteRemoteCommands):
+    'wait until host has booted into local Linux'
+
+    def get_commands(self, host):
+        return [Command(self.ssh_login_linux, [CHECK_LINUX])]
 
 
 class RebootNonDefaultOS(ExecuteRemoteCommands):

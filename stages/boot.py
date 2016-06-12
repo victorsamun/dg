@@ -28,12 +28,18 @@ class SetBootIntoCOWMemory(ConfigureBoot):
         self.set(host, ConfigureBoot.COW_MEMORY)
 
 
-class SetBootIntoNonDefault(ConfigureBoot):
-    'enable boot to local OS not booted by default'
+class SetBootIntoLocalWindows(ConfigureBoot):
+    'enable boot to local Windows'
 
     def run_single(self, host):
-        self.set(host, ConfigureBoot.COW if BootsToWindowsByDefault(host)
-                       else ConfigureBoot.WINDOWS)
+        self.set(host, ConfigureBoot.WINDOWS)
+
+
+class SetBootIntoLocalLinux(ConfigureBoot):
+    'enable boot to local Linux'
+
+    def run_single(self, host):
+        self.set(host, ConfigureBoot.COW)
 
 
 class ResetBoot(ConfigureBoot):

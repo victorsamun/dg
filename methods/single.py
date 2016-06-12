@@ -3,6 +3,7 @@ import datetime
 from common import method
 from stages import basic, boot, config, ndd, network, ssh
 
+
 class SingleMethod(method.Method):
     'method for deploying single OS Linux machines'
     name = 'single'
@@ -18,6 +19,6 @@ class SingleMethod(method.Method):
         config.StoreCOWConfig(),
         network.EnsureNetworkSpeed(),
         ndd.RunNDD(),
-        ssh.RebootLinux(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoDefault(*ssh.Timeouts.BIG),
+        ssh.RebootHost(*ssh.Timeouts.TINY),
+        ssh.WaitUntilBootedIntoLocalLinux(*ssh.Timeouts.BIG),
     ]
