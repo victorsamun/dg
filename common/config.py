@@ -47,6 +47,17 @@ class Option(object):
                  'Use empty value to list')
 
     @staticmethod
+    def get_stages(specs):
+        stages = []
+        for spec in specs:
+            if '-' in spec:
+                left, right = spec.split('-')
+                stages.extend(range(int(left), int(right)+1))
+            else:
+                stages.append(int(spec))
+        return stages
+
+    @staticmethod
     def choose_method_and_stages(method_classes, raw_args):
         names = dict((m.name, m) for m in method_classes)
         description = 'Deploy some machines. Available methods are:\n'
@@ -58,7 +69,7 @@ class Option(object):
         Option.add_common_params(parser, method_classes)
         Option.add_all(parser)
         args = parser.parse_args(raw_args)
-        return names[args.m], args.s
+        return names[args.m], Option.get_stages(args.s)
 
     @staticmethod
     def get_method_parser(method, raw_args):
