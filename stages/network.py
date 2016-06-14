@@ -7,7 +7,7 @@ from util import proc
 class EnsureNetworkSpeed(config.WithLocalAddress,
                          config.WithSSHCredentials,
                          stage.ParallelStage):
-    name = 'ensure sufficient throughput of network interface'
+    'ensure sufficient throughput of network interface'
 
     def __init__(self, poolsize=3, minimum=200, time=5):
         stage.ParallelStage.__init__(self, poolsize)
@@ -27,15 +27,15 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
             ['iperf', '-c', self.local_addr, '-t', str(self.time), '-y', 'c'],
             login=self.ssh_login_linux)
         if rv != 0:
-            return self.fail('failed to execute iperf -c, rv is {}'.format(rv))
+            self.fail('failed to execute iperf -c, rv is {}'.format(rv))
         else:
             tokens = output.strip().split(',')
             if len(tokens) != 9:
-                return self.fail(
+                self.fail(
                     'failed to parse iperf output, it was: {}'.format(output))
             speed = int(tokens[8]) / 1000000
             if speed < self.minimum:
-                return self.fail(
+                self.fail(
                     ('insufficient network speed: need {} Mbits/s, ' +
                      'got {} Mbits/s').format(self.minimum, speed))
             elif speed < self.minimum * 1.2:
@@ -47,7 +47,6 @@ class EnsureNetworkSpeed(config.WithLocalAddress,
                 host.state.log.info(
                     'measured network speed for {} is {} Mbits/s'.format(
                         host.name, speed))
-            return self.ok()
 
     def teardown(self):
         self.output.close()

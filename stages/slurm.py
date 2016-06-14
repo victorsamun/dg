@@ -8,7 +8,7 @@ class Timeouts:
     NORMAL = (3, 10)
 
 class WaitForSlurmAvailable(stage.Stage):
-    name = 'ensure SLURM is available on the hosts'
+    'ensure SLURM is available on the hosts'
 
     def __init__(self, tries=3, pause=10):
         self.tries = tries

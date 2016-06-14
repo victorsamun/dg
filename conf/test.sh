@@ -6,6 +6,4 @@ part() {
     echo "/dev/disk/by-partlabel/$1"
 }
 LOCK=("/root/cow/conf/host/hamming.urgu.org.sh" "/root/xen/windows7.cfg")
-NDD=()
-
 BAN=(asus1)

@@ -4,9 +4,9 @@ from common import method
 from stages import basic, boot, config, ndd, network, ssh
 
 
-class SimpleMethod(method.Method):
-    'method for deploying pre-configured machines'
-    name = 'simple'
+class SingleMethod(method.Method):
+    'method for deploying single OS Linux machines'
+    name = 'single'
 
     stages = [
         basic.InitHosts(),
@@ -19,14 +19,6 @@ class SimpleMethod(method.Method):
         config.StoreCOWConfig(),
         network.EnsureNetworkSpeed(),
         ndd.RunNDD(),
-        config.CustomizeWindowsSetup(),
-        boot.SetBootIntoLocalWindows(),
         ssh.RebootHost(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoLocalWindows(*ssh.Timeouts.BIG),
-        boot.SetBootIntoLocalLinux(),
-        ssh.RebootHost(*ssh.Timeouts.TINY),
-        ssh.WaitUntilBootedIntoLocalLinux(*ssh.Timeouts.NORMAL),
-        boot.ResetBoot(),
-        ssh.MaybeRebootLocalLinux(*ssh.Timeouts.TINY),
-        ssh.CheckIsAccessible(*ssh.Timeouts.NORMAL),
+        ssh.WaitUntilBootedIntoLocalLinux(*ssh.Timeouts.BIG),
     ]

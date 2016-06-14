@@ -1,15 +1,23 @@
 import argparse
+import sys
 
 import stage, state
 from util import amt_creds, proc
 
 def execute_with(raw_args, methods):
-    method_cls = Option.choose_method(methods, raw_args)
+    method_cls, stages = Option.choose_method_and_stages(methods, raw_args)
 
-    parser = Option.get_method_parser(method_cls, raw_args)
+    if stages == []:
+        print >> sys.stderr, 'Available stages for "{}" method:'.format(
+            method_cls.name)
+        for index, stage in enumerate(method_cls.stages):
+            print >> sys.stderr, '{:-3d}: {}'.format(index, stage)
+        return 0
+
+    method = method_cls(stages)
+    parser = Option.get_method_parser(method, raw_args)
     method_args = parser.parse_args(raw_args)
 
-    method = method_cls()
     method.parse(method_args)
     the_state = state.State(parser, method_args)
 
@@ -17,7 +25,6 @@ def execute_with(raw_args, methods):
 
 
 class Option(object):
-    description = 'Deploy some machines'
     requirements = []
     EMPTY = ()
 
@@ -29,25 +36,45 @@ class Option(object):
         return rv
 
     @staticmethod
-    def add_common_params(parser, methods):
+    def add_common_params(parser, method_classes):
         state.State.add_params(parser)
         parser.add_argument(
-            '-m', choices=[method.name for method in methods],
+            '-m', choices=[method.name for method in method_classes],
             help='Deploy method', required=True)
+        parser.add_argument(
+            '-s', nargs='*', default=None, metavar='NUM',
+            help='Explicitly choose method stages by index. '
+                 'Use empty value to list')
 
     @staticmethod
-    def choose_method(methods, raw_args):
-        names = dict((m.name, m) for m in methods)
-        parser = argparse.ArgumentParser(description=Option.description)
-        Option.add_common_params(parser, methods)
+    def get_stages(specs):
+        stages = []
+        for spec in specs:
+            if '-' in spec:
+                left, right = spec.split('-')
+                stages.extend(range(int(left), int(right)+1))
+            else:
+                stages.append(int(spec))
+        return stages
+
+    @staticmethod
+    def choose_method_and_stages(method_classes, raw_args):
+        names = dict((m.name, m) for m in method_classes)
+        description = 'Deploy some machines. Available methods are:\n'
+        for method in method_classes:
+            description += '  {:<8} {}\n'.format(method.name, method.__doc__)
+        parser = argparse.ArgumentParser(
+            description=description,
+            formatter_class=argparse.RawTextHelpFormatter)
+        Option.add_common_params(parser, method_classes)
         Option.add_all(parser)
         args = parser.parse_args(raw_args)
-        return names[args.m]
+        return names[args.m], Option.get_stages(args.s)
 
     @staticmethod
     def get_method_parser(method, raw_args):
-        parser = argparse.ArgumentParser(description=Option.description)
-        Option.add_common_params(parser, [method])
+        parser = argparse.ArgumentParser(description=method.__doc__)
+        Option.add_common_params(parser, [type(method)])
         Option.add_required(parser, method)
         return parser
 
@@ -68,7 +95,7 @@ class Option(object):
         required = set()
         for stage in method.stages:
             for cls, args, kwargs in Option.requirements:
-                if issubclass(stage.__class__, cls):
+                if isinstance(stage, cls):
                     required.add((args, frozenset(kwargs.items())))
         for args, skwargs in required:
             kwargs = dict(skwargs)
@@ -114,12 +141,18 @@ class WithSSHCredentials(stage.Stage):
         self.ssh_login_linux = args.ll
         self.ssh_login_windows = args.lw
 
-    def run_ssh(self, host, args, login, opts=[]):
+    def run_scp(self, host, login, src, dst):
+        return proc.run_process(
+            ['scp', '-o', 'PasswordAuthentication=no',
+             src, '{}@{}:{}'.format(login, host, dst)],
+             host.state.log)
+
+    def run_ssh(self, host, args, login, opts=None):
         return proc.run_remote_process(
             host.name, login, args, host.state.log, opts)
 
 
-@Option.requires('-l', help='local address', metavar='ADDR')
+@Option.requires('-l', help='Local address', metavar='ADDR')
 class WithLocalAddress(stage.Stage):
     def parse(self, args):
         super(WithLocalAddress, self).parse(args)
@@ -127,7 +160,7 @@ class WithLocalAddress(stage.Stage):
 
 
 @Option.requires(
-    '-n', help='deploy local INPUT into OUTPUT on all the hosts with ndd',
+    '-n', help='Deploy local INPUT into OUTPUT on all the hosts with ndd',
     metavar='INPUT:OUTPUT', action='append', default=Option.EMPTY)
 class WithNDDArgs(stage.Stage):
     def parse(self, args):
@@ -136,7 +169,7 @@ class WithNDDArgs(stage.Stage):
 
 
 @Option.requires(
-    '-b', help='ban HOST, excluding it from deployment',
+    '-b', help='Ban HOST, excluding it from deployment',
     metavar='HOST', action='append', default=Option.EMPTY)
 class WithBannedHosts(stage.Stage):
     def parse(self, args):
@@ -154,3 +187,11 @@ class WithWindows7Partition(stage.Stage):
 
     def get_win7_partition(self):
         return '/dev/disk/by-partlabel/{}'.format(self.win7_partition)
+
+@Option.requires(
+    '-wd', help='Set windows partition volume path by FS label',
+    metavar='LABEL:LETTER', default=None)
+class WithWindowsDataPartition(stage.Stage):
+    def parse(self, args):
+        self.win_data_label, self.win_data_letter = (
+            args.wd.split(':', 1) if args.wd is not None else [None, None])

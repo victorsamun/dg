@@ -5,10 +5,10 @@ class Stage(object):
         pass
 
     def __str__(self):
-        return self.__class__.name
+        return self.__class__.__doc__
 
     def run(self, state):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def rollback(self, state):
         pass
@@ -28,13 +28,18 @@ class SimpleStage(Stage):
                 self.rollback_single(host)
             except Exception as e:
                 state.log.exception('rollback of {} for {} failed: {}'.format(
-                    self.__class__.name, host.name, e))
+                    self, host.name, e))
 
     def run_single(self, host):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def rollback_single(self, host):
         pass
+
+
+class ParallelStageFailedError(Exception):
+    def __init__(self, reason=None):
+        self.reason = reason
 
 
 def _run_forked((stage, host)):
@@ -60,9 +65,9 @@ class ParallelStage(Stage):
                 try:
                     # Timeout is here to handle interruptions properly, otherwise
                     # it will not work as expected due to bug.
-                    rv, reason = result.get(ParallelStage.HUGE_TIMEOUT)
-                    if not rv:
-                        host.fail(self, reason)
+                    result.get(ParallelStage.HUGE_TIMEOUT)
+                except ParallelStageFailedError as e:
+                    host.fail(self, e.reason)
                 except Exception as e:
                     state.log.exception(e)
                     host.fail(self,
@@ -83,8 +88,5 @@ class ParallelStage(Stage):
     def teardown(self):
         pass
 
-    def ok(self):
-        return (True, None)
-
     def fail(self, reason):
-        return (False, reason)
+        raise ParallelStageFailedError(reason)

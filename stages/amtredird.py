@@ -2,15 +2,14 @@ from clients import amtredird
 from common import config, stage
 
 class EnsureRedirectionPossible(config.WithAMTRedirdURL, stage.Stage):
-    name = 'ensure amtrerid has the hosts required'
+    'ensure amtrerid has the hosts required'
 
     def run(self, state):
         possible_hosts = set(amtredird.list(self.amtredird_url))
         for host in list(state.active_hosts):
             assert host.amt_host
             if not host.amt_host in possible_hosts:
-                host.fail(self.__class__,
-                          'AMT host not configured in amtredird')
+                host.fail(self, 'AMT host not configured in amtredird')
 
 
 class ChangeRedirection(config.WithAMTRedirdURL, stage.Stage):
@@ -26,7 +25,7 @@ class ChangeRedirection(config.WithAMTRedirdURL, stage.Stage):
 
 
 class EnableRedirection(ChangeRedirection):
-    name = 'enable IDE-R redirection via amtredird'
+    'enable IDE-R redirection via amtredird'
     command = lambda self, hosts: amtredird.start(self.amtredird_url, hosts)
 
     def rollback(self, state):
@@ -42,5 +41,5 @@ class EnableRedirection(ChangeRedirection):
 
 
 class DisableRedirection(ChangeRedirection):
-    name = 'disable IDE-R redirection via amtredird'
+    'disable IDE-R redirection via amtredird'
     command = lambda self, hosts: amtredird.stop(self.amtredird_url, hosts)

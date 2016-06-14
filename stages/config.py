@@ -1,21 +1,28 @@
+import subprocess
+
 from common import config, stage
-from util import proc
+from util import proc, win
+import os
 
 class RunCommands(stage.ParallelStage):
     def get_commands(self, host):
         return []
 
+    def get_files_to_copy(self, host):
+        return []
+
     def run_single(self, host):
-        rvs = [self.run_ssh(host, cmd, login=self.ssh_login_linux)
-               for cmd in self.get_commands(host)]
+        rvs = [self.run_scp(host, self.ssh_login_linux, src, dst)
+               for src, dst in self.get_files_to_copy(host)]
+        rvs += [self.run_ssh(host, cmd, login=self.ssh_login_linux)
+                for cmd in self.get_commands(host)]
 
         if any(map(lambda (rv, _): rv != 0, rvs)):
-            return self.fail('failed to {}'.format(self.__class__.name))
-        return self.ok()
+            self.fail('failed to {}'.format(self))
 
 
 class StoreCOWConfig(config.WithSSHCredentials, RunCommands):
-    name = 'store Puppet SSL stuff into COW config partition'
+    'store Puppet SSL stuff into COW config partition'
 
     def get_commands(self, host):
         return map(lambda cmd: ['/root/cow/conf.sh'] + cmd, [
@@ -28,16 +35,46 @@ class StoreCOWConfig(config.WithSSHCredentials, RunCommands):
         ])
 
 
-class CopySSHCredentialsIntoWindows7Partition(
-        config.WithSSHCredentials, config.WithWindows7Partition, RunCommands):
-    name = 'copy SSH credentials into Windows 7 root partition'
+class CustomizeWindowsSetup(
+        config.WithSSHCredentials, config.WithWindows7Partition,
+        config.WithWindowsDataPartition, RunCommands):
+    'customize SSH credentials and sysprep config in Windows root partition'
+
+    def get_files_to_copy(self, host):
+        files = [
+            (os.path.join(os.path.dirname(__file__), os.path.pardir,
+             'win7', 'customize.py'), '/tmp/customize.py')
+        ]
+
+        return files
 
     def get_commands(self, host):
         mountpoint = '/mnt'
         prefix = '/cygwin64/etc'
-        return [
+        args = ['-H', win.get_hostname(host),
+                '-j', 'runc.urgu.org', '-p', '/etc/smb.pwd']
+        if 'userqwer' in host.props['services']:
+            args += ['-a', 'user:qwer', '-A', 'user:qwer']
+        sysprep_xml = '{}/Windows/Panther/unattend.xml'.format(mountpoint)
+        if self.win_data_label is not None:
+            args += ['-c', r'"{} {} {}:\\"'.format(
+                r'C:\\Windows\\Setup\\Scripts\\set-mountpoint.exe',
+                self.win_data_label, self.win_data_letter)]
+            home = r'{}:\\Users'.format(self.win_data_letter)
+            args += ['-c', r'"cmd /c mkdir {}"'.format(home)]
+            args += ['-P', home]
+        cmds = [
             ['mount', self.get_win7_partition(), mountpoint],
             ['cp /etc/ssh/ssh_host_*_key{{,.pub}} {}{}'.format(
                 mountpoint, prefix)],
-            ['umount', mountpoint],
+            ['python', '/tmp/customize.py'] + args + [sysprep_xml, sysprep_xml],
         ]
+        if self.win_data_label is not None:
+            cmds.append([
+                'sed', '-i',
+                '"s/rem set profiles=/set profiles=' +
+                r'{}:\\\\Users\\\\profiles.reg/"'.format(self.win_data_letter),
+                '{}/Windows/Setup/Scripts/SetupComplete.cmd'.format(mountpoint)
+            ])
+        cmds.append(['umount', mountpoint])
+        return cmds
